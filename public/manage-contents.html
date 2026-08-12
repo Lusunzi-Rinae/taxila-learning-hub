@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Contents</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="admin-bg">
+
+<h1 class="main-title">Manage Contents</h1>
+
+<div class="card">
+    <h2>Homework</h2>
+    <ul id="homeworkList"></ul>
+
+    <h2>Announcements</h2>
+    <ul id="announcementList"></ul>
+
+    <button onclick="window.location.href='admin.html'">Back</button>
+</div>
+
+<script>
+const homeworkList = document.getElementById("homeworkList");
+const announcementList = document.getElementById("announcementList");
+
+fetch("/homework")
+    .then(res => res.json())
+    .then(data => {
+        if (data.length === 0) {
+            homeworkList.innerHTML = "<li>No homework found</li>";
+        }
+
+        data.forEach(hw => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <b>${hw.title}</b><br>
+                ${hw.description || ""}<br>
+                <button onclick="deleteHomework(${hw.homework_id})">Delete</button>
+                <br><br>
+            `;
+            homeworkList.appendChild(li);
+        });
+    });
+
+fetch("/announcements")
+    .then(res => res.json())
+    .then(data => {
+        if (data.length === 0) {
+            announcementList.innerHTML = "<li>No announcements found</li>";
+        }
+
+        data.forEach(a => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <b>${a.title}</b><br>
+                ${a.message}<br>
+                <button onclick="deleteAnnouncement(${a.announcement_id})">Delete</button>
+                <br><br>
+            `;
+            announcementList.appendChild(li);
+        });
+    });
+
+function deleteHomework(id) {
+    fetch("/delete-homework/" + id, {
+        method: "DELETE"
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        location.reload();
+    });
+}
+
+function deleteAnnouncement(id) {
+    fetch("/delete-announcement/" + id, {
+        method: "DELETE"
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        location.reload();
+    });
+}
+</script>
+
+</body>
+</html>

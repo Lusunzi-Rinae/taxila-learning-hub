@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Attendance</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Additional styles for this page */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .stat-card .number {
+            font-size: 28px;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        .stat-card.present .number { color: #2ecc71; }
+        .stat-card.absent .number { color: #e74c3c; }
+        .stat-card.late .number { color: #f39c12; }
+        .stat-card.total .number { color: #06d3f7; }
+
+        .record-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            border-left: 4px solid #888;
+        }
+
+        .record-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .record-item.present { border-left-color: #2ecc71; }
+        .record-item.absent { border-left-color: #e74c3c; }
+        .record-item.late { border-left-color: #f39c12; }
+
+        .record-info {
+            flex: 1;
+        }
+
+        .record-info .student-name {
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .record-info .student-email {
+            color: #aaa;
+            font-size: 13px;
+        }
+
+        .record-info .details {
+            color: #888;
+            font-size: 13px;
+        }
+
+        .record-info .status-badge {
+            display: inline-block;
+            padding: 3px 14px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .status-badge.present { background: #2ecc71; color: white; }
+        .status-badge.absent { background: #e74c3c; color: white; }
+        .status-badge.late { background: #f39c12; color: white; }
+
+        .delete-btn {
+            background: #e74c3c;
+            min-width: 60px;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-left: 10px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #aaa;
+        }
+
+        .empty-state .icon {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .empty-state p {
+            margin: 5px 0;
+            font-size: 18px;
+        }
+
+        .empty-state small {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .empty-state .upload-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: #f39c12;
+            color: white;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .empty-state .upload-link:hover {
+            background: #e67e22;
+            transform: scale(1.05);
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 12px;
+        }
+
+        .error-state .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .error-state .retry-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 25px;
+            background: #3498db;
+            color: white;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .error-state .retry-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+        }
+
+        .loading-spinner .spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid #06d3f7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .toolbar .count {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .toolbar .count strong {
+            color: white;
+        }
+
+        .refresh-btn {
+            background: #3498db;
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .refresh-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .filter-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: transparent;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+        }
+
+        .filter-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .filter-btn.active {
+            border-color: #06d3f7;
+            color: white;
+            background: rgba(6, 211, 247, 0.1);
+        }
+
+        .filter-btn.present:hover,
+        .filter-btn.present.active { border-color: #2ecc71; color: #2ecc71; }
+
+        .filter-btn.absent:hover,
+        .filter-btn.absent.active { border-color: #e74c3c; color: #e74c3c; }
+
+        .filter-btn.late:hover,
+        .filter-btn.late.active { border-color: #f39c12; color: #f39c12; }
+    </style>
+</head>
+
+<body class="teacher-bg">
+
+<h1 class="main-title">📅 Manage Attendance</h1>
+
+<div class="card">
+    <h2 style="color: white; text-align: center;">Attendance Records</h2>
+
+    <!-- Stats -->
+    <div class="stats-container" id="statsContainer">
+        <div class="stat-card total">
+            <span class="number" id="totalCount">0</span>
+            <span class="label">📊 Total Records</span>
+        </div>
+        <div class="stat-card present">
+            <span class="number" id="presentCount">0</span>
+            <span class="label">✅ Present</span>
+        </div>
+        <div class="stat-card absent">
+            <span class="number" id="absentCount">0</span>
+            <span class="label">❌ Absent</span>
+        </div>
+        <div class="stat-card late">
+            <span class="number" id="lateCount">0</span>
+            <span class="label">⏰ Late</span>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <span class="count">Showing <strong id="showingCount">0</strong> records</span>
+        <button class="refresh-btn" onclick="loadAttendance()">🔄 Refresh</button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-container">
+        <button class="filter-btn active" onclick="filterAttendance('all')" id="filterAll">📋 All</button>
+        <button class="filter-btn present" onclick="filterAttendance('present')" id="filterPresent">✅ Present</button>
+        <button class="filter-btn absent" onclick="filterAttendance('absent')" id="filterAbsent">❌ Absent</button>
+        <button class="filter-btn late" onclick="filterAttendance('late')" id="filterLate">⏰ Late</button>
+    </div>
+
+    <!-- Attendance List -->
+    <div id="attendanceList"></div>
+
+    <button onclick="window.location.href='teacher.html'" style="margin-top: 20px; width: 100%; padding: 12px;">← Back to Dashboard</button>
+</div>
+
+<script>
+let allRecords = [];
+let currentFilter = 'all';
+
+// ============================================
+// ===== LOAD ATTENDANCE =====
+// ============================================
+async function loadAttendance() {
+    const container = document.getElementById('attendanceList');
+    container.innerHTML = `
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading attendance records...</p>
+        </div>
+    `;
+    
+    try {
+        console.log('📅 Fetching attendance records...');
+        const response = await fetch('/attendance/all');
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const records = await response.json();
+        console.log('Records received:', records);
+        console.log('Number of records:', records.length);
+        
+        allRecords = records;
+        updateStats(records);
+        renderRecords(records);
+        
+    } catch (error) {
+        console.error('Error loading attendance:', error);
+        container.innerHTML = `
+            <div class="error-state">
+                <span class="icon">❌</span>
+                <p>Error loading attendance records</p>
+                <small>${error.message}</small>
+                <br><br>
+                <button class="retry-btn" onclick="loadAttendance()">🔄 Retry</button>
+            </div>
+        `;
+    }
+}
+
+// ============================================
+// ===== UPDATE STATS =====
+// ============================================
+function updateStats(records) {
+    const total = records.length;
+    const present = records.filter(r => r.status && r.status.toLowerCase() === 'present').length;
+    const absent = records.filter(r => r.status && r.status.toLowerCase() === 'absent').length;
+    const late = records.filter(r => r.status && r.status.toLowerCase() === 'late').length;
+    
+    document.getElementById('totalCount').textContent = total;
+    document.getElementById('presentCount').textContent = present;
+    document.getElementById('absentCount').textContent = absent;
+    document.getElementById('lateCount').textContent = late;
+    document.getElementById('showingCount').textContent = total;
+}
+
+// ============================================
+// ===== RENDER RECORDS =====
+// ============================================
+function renderRecords(records) {
+    const container = document.getElementById('attendanceList');
+    
+    if (!records || records.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="icon">📅</span>
+                <p>No attendance records found</p>
+                <small>Start by recording attendance for students.</small>
+                <br>
+                <a href="upload-attendance.html" class="upload-link">📅 Upload Attendance</a>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    records.forEach(r => {
+        const statusClass = r.status ? r.status.toLowerCase() : 'unknown';
+        const statusDisplay = r.status || 'Unknown';
+        const date = r.date_recorded ? new Date(r.date_recorded).toLocaleDateString('en-GB') : 'Unknown date';
+        const time = r.created_at ? new Date(r.created_at).toLocaleTimeString('en-GB') : '';
+        const studentName = r.full_name || r.student_email;
+        
+        html += `
+            <div class="record-item ${statusClass}">
+                <div class="record-info">
+                    <div class="student-name">${studentName}</div>
+                    <div class="student-email">📧 ${r.student_email}</div>
+                    <div class="details">
+                        📅 ${date} ${time ? `• 🕐 ${time}` : ''}
+                        <span class="status-badge ${statusClass}" style="margin-left: 10px;">${statusDisplay}</span>
+                    </div>
+                </div>
+                <button class="delete-btn" onclick="deleteAttendance(${r.attendance_id})">🗑️ Delete</button>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+    document.getElementById('showingCount').textContent = records.length;
+}
+
+// ============================================
+// ===== FILTER ATTENDANCE =====
+// ============================================
+function filterAttendance(filter) {
+    currentFilter = filter;
+    
+    // Update filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (filter === 'all') {
+        document.getElementById('filterAll').classList.add('active');
+        renderRecords(allRecords);
+    } else {
+        const filtered = allRecords.filter(r => 
+            r.status && r.status.toLowerCase() === filter
+        );
+        document.getElementById('filter' + filter.charAt(0).toUpperCase() + filter.slice(1)).classList.add('active');
+        renderRecords(filtered);
+    }
+}
+
+// ============================================
+// ===== DELETE ATTENDANCE =====
+// ============================================
+async function deleteAttendance(id) {
+    if (!confirm('⚠️ Are you sure you want to delete this attendance record?')) return;
+    
+    try {
+        const response = await fetch('/delete-attendance/' + id, {
+            method: 'DELETE'
+        });
+        const data = await response.json();
+        alert(data.message);
+        if (data.success) {
+            // Reload all data
+            await loadAttendance();
+        }
+    } catch (error) {
+        alert('❌ Error deleting attendance record: ' + error.message);
+    }
+}
+
+// ============================================
+// ===== PAGE LOAD =====
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Make sure the teacher is logged in
+    const user = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (!user || user.role !== "teacher") {
+        window.location.href = "Login.html";
+    }
+    
+    // Load attendance
+    loadAttendance();
+});
+</script>
+
+</body>
+</html>

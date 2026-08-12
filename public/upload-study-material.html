@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Study Material</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .upload-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .upload-form label {
+            display: block;
+            color: #ccc;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .upload-form input, 
+        .upload-form select, 
+        .upload-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        .upload-form select option {
+            background: #333;
+        }
+        
+        .upload-form .material-type-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .upload-form .material-type-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        
+        .upload-form .material-type-group input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+        
+        .upload-form .file-input-wrapper {
+            border: 2px dashed rgba(255,255,255,0.2);
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+        
+        .upload-form .file-input-wrapper:hover {
+            border-color: #06d3f7;
+            background: rgba(6,211,247,0.05);
+        }
+        
+        .upload-form .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+        
+        .upload-form .file-input-wrapper .file-name {
+            color: #06d3f7;
+            margin-top: 10px;
+        }
+        
+        .upload-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #06d3f7;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-btn:hover {
+            background: #04b5d9;
+            transform: scale(1.02);
+        }
+        
+        .upload-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .success-message {
+            background: rgba(46,204,113,0.2);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            margin-bottom: 15px;
+        }
+        
+        .error-message {
+            background: rgba(231,76,60,0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            margin-bottom: 15px;
+        }
+        
+        .link-field {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="teacher-bg">
+
+<h1 class="main-title">📚 Upload Study Material</h1>
+
+<div class="card" style="max-width: 650px;">
+    <h2>Add Learning Resource</h2>
+    
+    <div id="successMsg" class="success-message">✅ Material uploaded successfully!</div>
+    <div id="errorMsg" class="error-message">❌ Error: <span id="errorText"></span></div>
+    
+    <form id="uploadForm" class="upload-form" onsubmit="handleSubmit(event)">
+        <label for="title">Title *</label>
+        <input type="text" id="title" placeholder="e.g., Algebra Study Guide" required>
+        
+        <label for="description">Description</label>
+        <textarea id="description" rows="3" placeholder="Brief description of the material..."></textarea>
+        
+        <label for="subject">Subject *</label>
+        <select id="subject" required>
+            <option value="">Select Subject</option>
+            <option value="Mathematics">📐 Mathematics</option>
+            <option value="English">📖 English</option>
+            <option value="Science">🔬 Science</option>
+            <option value="History">📜 History</option>
+            <option value="Geography">🌍 Geography</option>
+            <option value="Computer Science">💻 Computer Science</option>
+            <option value="Art">🎨 Art</option>
+            <option value="Music">🎵 Music</option>
+            <option value="Physical Education">🏃 Physical Education</option>
+            <option value="Other">📚 Other</option>
+        </select>
+        
+        <label for="grade_level">Grade Level</label>
+        <select id="grade_level">
+            <option value="">Select Grade</option>
+            <option value="Grade 8">Grade 8</option>
+            <option value="Grade 9">Grade 9</option>
+            <option value="Grade 10">Grade 10</option>
+            <option value="Grade 11">Grade 11</option>
+            <option value="Grade 12">Grade 12</option>
+            <option value="All Grades">All Grades</option>
+        </select>
+        
+        <label>Material Type *</label>
+        <div class="material-type-group">
+            <label>
+                <input type="radio" name="material_type" value="file" checked onchange="toggleMaterialType()">
+                📄 File
+            </label>
+            <label>
+                <input type="radio" name="material_type" value="link" onchange="toggleMaterialType()">
+                🔗 Link
+            </label>
+            <label>
+                <input type="radio" name="material_type" value="video" onchange="toggleMaterialType()">
+                🎥 Video
+            </label>
+        </div>
+        
+        <div id="fileUploadSection">
+            <div class="file-input-wrapper" onclick="document.getElementById('fileInput').click()">
+                <p style="font-size: 40px; margin: 0;">📁</p>
+                <p>Click to upload a file</p>
+                <p style="color: #666; font-size: 12px;">Supports: PDF, DOC, PPT, Images, etc.</p>
+                <div id="fileName" class="file-name"></div>
+                <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif,.mp4,.zip">
+            </div>
+        </div>
+        
+        <div id="linkSection" class="link-field">
+            <label for="link_url">URL *</label>
+            <input type="url" id="link_url" placeholder="https://example.com/resource">
+            <p style="color: #666; font-size: 12px;">Enter a valid URL to the resource</p>
+        </div>
+        
+        <button type="submit" class="upload-btn" id="submitBtn">📤 Upload Material</button>
+    </form>
+    
+    <button onclick="window.location.href='teacher.html'" style="margin-top: 15px; width: 100%;">← Back to Dashboard</button>
+</div>
+
+<script>
+const user = JSON.parse(localStorage.getItem("loggedInUser"));
+
+if (!user || user.role !== "teacher") {
+    window.location.href = "index.html";
+}
+
+function toggleMaterialType() {
+    const selectedType = document.querySelector('input[name="material_type"]:checked').value;
+    const fileSection = document.getElementById('fileUploadSection');
+    const linkSection = document.getElementById('linkSection');
+    
+    if (selectedType === 'file') {
+        fileSection.style.display = 'block';
+        linkSection.style.display = 'none';
+        document.getElementById('fileInput').required = true;
+        document.getElementById('link_url').required = false;
+    } else {
+        fileSection.style.display = 'none';
+        linkSection.style.display = 'block';
+        document.getElementById('fileInput').required = false;
+        document.getElementById('link_url').required = true;
+    }
+}
+
+document.getElementById('fileInput').addEventListener('change', function() {
+    const fileName = this.files[0] ? this.files[0].name : '';
+    document.getElementById('fileName').textContent = fileName;
+});
+
+async function handleSubmit(event) {
+    event.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ Uploading...';
+    
+    const formData = new FormData();
+    const materialType = document.querySelector('input[name="material_type"]:checked').value;
+    
+    formData.append('title', document.getElementById('title').value);
+    formData.append('description', document.getElementById('description').value);
+    formData.append('subject', document.getElementById('subject').value);
+    formData.append('grade_level', document.getElementById('grade_level').value);
+    formData.append('material_type', materialType);
+    formData.append('uploaded_by', user.email);
+    
+    if (materialType === 'file') {
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput.files.length === 0) {
+            showError('Please select a file to upload');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '📤 Upload Material';
+            return;
+        }
+        formData.append('file', fileInput.files[0]);
+        formData.append('link_url', '');
+    } else {
+        const linkUrl = document.getElementById('link_url').value;
+        if (!linkUrl) {
+            showError('Please enter a valid URL');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '📤 Upload Material';
+            return;
+        }
+        formData.append('link_url', linkUrl);
+        formData.append('file', null);
+    }
+    
+    try {
+        const response = await fetch('/upload-study-material', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('successMsg').style.display = 'block';
+            document.getElementById('errorMsg').style.display = 'none';
+            document.getElementById('uploadForm').reset();
+            document.getElementById('fileName').textContent = '';
+            toggleMaterialType();
+            
+            setTimeout(() => {
+                document.getElementById('successMsg').style.display = 'none';
+            }, 5000);
+        } else {
+            showError(data.message);
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        showError('Failed to upload. Please try again.');
+    }
+    
+    submitBtn.disabled = false;
+    submitBtn.textContent = '📤 Upload Material';
+}
+
+function showError(message) {
+    document.getElementById('errorText').textContent = message;
+    document.getElementById('errorMsg').style.display = 'block';
+    setTimeout(() => {
+        document.getElementById('errorMsg').style.display = 'none';
+    }, 5000);
+}
+
+// Initialize
+toggleMaterialType();
+</script>
+
+</body>
+</html>

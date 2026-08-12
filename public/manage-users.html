@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Users</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="admin-bg">
+
+<h1 class="main-title">Manage Users</h1>
+
+<div class="card">
+    <ul id="userList"></ul>
+
+    <button onclick="window.location.href='admin.html'">Back</button>
+</div>
+
+<script>
+const list = document.getElementById("userList");
+
+fetch("/users")
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.length === 0) {
+            list.innerHTML = "<li>No users found</li>";
+        }
+
+        data.forEach(user => {
+            const li = document.createElement("li");
+
+            li.innerHTML = `
+                <b>${user.full_name}</b> (${user.role})<br>
+                ${user.email}<br>
+                <button onclick="deleteUser(${user.user_id})">Delete</button>
+                <br><br>
+            `;
+
+            list.appendChild(li);
+        });
+    });
+
+function deleteUser(id) {
+    fetch("/users/" + id, {
+        method: "DELETE"
+    })
+    .then(() => location.reload());
+}
+</script>
+
+</body>
+</html>

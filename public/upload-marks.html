@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Student Marks</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="teacher-bg">
+
+<h1 class="main-title">📊 Upload Student Marks</h1>
+
+<div class="card">
+    <h2>Add Marks for Student</h2>
+
+    <input id="student_email" type="email" placeholder="Student Email" required>
+    
+    <select id="subject">
+        <option value="Mathematics">📐 Mathematics</option>
+        <option value="English">📖 English</option>
+        <option value="Science">🔬 Science</option>
+        <option value="History">📜 History</option>
+        <option value="Geography">🌍 Geography</option>
+        <option value="Art">🎨 Art</option>
+        <option value="Music">🎵 Music</option>
+        <option value="Physical Education">🏃 Physical Education</option>
+        <option value="Computer Science">💻 Computer Science</option>
+        <option value="Other">📚 Other</option>
+    </select>
+
+    <input id="score" type="number" placeholder="Score (0-100)" min="0" max="100" required>
+    
+    <select id="term">
+        <option value="Term 1">📘 Term 1</option>
+        <option value="Term 2">📗 Term 2</option>
+        <option value="Term 3">📕 Term 3</option>
+        <option value="Final Exam">📝 Final Exam</option>
+    </select>
+
+    <!-- Grade Selection -->
+    <select id="markGrade" style="width:100%; padding:12px; margin:10px 0; border-radius:20px; border:none;">
+        <option value="All Grades">📚 All Grades</option>
+        <option value="Grade 8">Grade 8</option>
+        <option value="Grade 9">Grade 9</option>
+        <option value="Grade 10">Grade 10</option>
+        <option value="Grade 11">Grade 11</option>
+        <option value="Grade 12">Grade 12</option>
+    </select>
+
+    <button onclick="addMark()" style="background: #2ecc71; width: 100%;">✅ Save Mark</button>
+    
+    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+    
+    <h3>📋 Recently Added Marks</h3>
+    <div id="recentMarks" style="text-align: left; max-height: 300px; overflow-y: auto;">
+        <p style="color: #aaa; text-align: center;">No marks added yet in this session.</p>
+    </div>
+
+    <button onclick="window.location.href='teacher.html'" style="margin-top: 10px;">← Back to Dashboard</button>
+</div>
+
+<script>
+let recentMarks = [];
+
+async function addMark() {
+    const student_email = document.getElementById("student_email").value.trim();
+    const subject = document.getElementById("subject").value;
+    const score = document.getElementById("score").value;
+    const term = document.getElementById("term").value;
+    const grade_level = document.getElementById("markGrade").value;
+
+    if (!student_email) {
+        alert("❌ Please enter a student email");
+        return;
+    }
+
+    if (!isValidEmail(student_email)) {
+        alert("❌ Please enter a valid email address");
+        return;
+    }
+
+    if (!score || score < 0 || score > 100) {
+        alert("❌ Please enter a valid score between 0 and 100");
+        return;
+    }
+
+    try {
+        const response = await fetch("/add-mark", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ student_email, subject, score, term, grade_level })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            alert("✅ Mark saved successfully!");
+            
+            recentMarks.unshift({
+                student_email,
+                subject,
+                score,
+                term,
+                grade_level,
+                time: new Date().toLocaleString()
+            });
+            
+            updateRecentMarks();
+            
+            document.getElementById("student_email").value = "";
+            document.getElementById("score").value = "";
+            document.getElementById("markGrade").value = "All Grades";
+        } else {
+            alert("❌ " + data.message);
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("❌ Server error. Please try again.");
+    }
+}
+
+function isValidEmail(email) {
+    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return pattern.test(email);
+}
+
+function updateRecentMarks() {
+    const container = document.getElementById("recentMarks");
+    
+    if (recentMarks.length === 0) {
+        container.innerHTML = '<p style="color: #aaa; text-align: center;">No marks added yet in this session.</p>';
+        return;
+    }
+    
+    let html = '';
+    recentMarks.slice(0, 10).forEach((mark, index) => {
+        const scoreColor = mark.score >= 70 ? '#2ecc71' : mark.score >= 50 ? '#f39c12' : '#e74c3c';
+        html += `
+            <div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid ${scoreColor};">
+                <div>
+                    <strong style="color: #06d3f7;">${mark.subject}</strong>
+                    <span style="color: #ccc;">→</span>
+                    <span style="color: white;">${mark.student_email}</span>
+                    <br>
+                    <small style="color: #888;">${mark.term} • ${mark.grade_level || 'All Grades'} • ${mark.time}</small>
+                </div>
+                <div style="font-size: 24px; font-weight: bold; color: ${scoreColor};">
+                    ${mark.score}%
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+document.addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+        const activeElement = document.activeElement;
+        if (activeElement.id === "student_email" || 
+            activeElement.id === "score") {
+            addMark();
+        }
+    }
+});
+</script>
+
+</body>
+</html>

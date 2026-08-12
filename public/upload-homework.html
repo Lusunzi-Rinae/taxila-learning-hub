@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Homework</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .upload-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .upload-form label {
+            display: block;
+            color: #ccc;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .upload-form input, 
+        .upload-form select, 
+        .upload-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        .upload-form select option {
+            background: #333;
+            color: white;
+        }
+        
+        .upload-form .file-input-wrapper {
+            border: 2px dashed rgba(255,255,255,0.2);
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+        
+        .upload-form .file-input-wrapper:hover {
+            border-color: #06d3f7;
+            background: rgba(6,211,247,0.05);
+        }
+        
+        .upload-form .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+        
+        .upload-form .file-input-wrapper .file-name {
+            color: #06d3f7;
+            margin-top: 10px;
+        }
+        
+        .upload-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #06d3f7;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-btn:hover {
+            background: #04b5d9;
+            transform: scale(1.02);
+        }
+        
+        .upload-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .message-box {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+            font-weight: bold;
+        }
+        
+        .message-box.success {
+            display: block;
+            background: rgba(46,204,113,0.2);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+        }
+        
+        .message-box.error {
+            display: block;
+            background: rgba(231,76,60,0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+        
+        .message-box.info {
+            display: block;
+            background: rgba(52,152,219,0.2);
+            border: 1px solid #3498db;
+            color: #3498db;
+        }
+        
+        .recent-uploads {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .recent-uploads h3 {
+            color: white;
+            margin-top: 0;
+        }
+        
+        .recent-item {
+            background: rgba(255,255,255,0.05);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .recent-item .info {
+            color: #ccc;
+            font-size: 13px;
+        }
+        
+        .recent-item .info strong {
+            color: white;
+        }
+        
+        .recent-item .grade-badge {
+            padding: 2px 12px;
+            border-radius: 12px;
+            background: rgba(243,156,18,0.2);
+            color: #f39c12;
+            font-size: 12px;
+        }
+        
+        .recent-item .time {
+            color: #666;
+            font-size: 11px;
+        }
+        
+        .debug-box {
+            background: rgba(0,0,0,0.7);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border: 1px solid #333;
+            max-height: 150px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            display: none;
+        }
+        
+        .debug-box.visible {
+            display: block;
+        }
+        
+        .debug-box.error {
+            color: #ff6b6b;
+            border-color: #600;
+        }
+        
+        .toggle-debug {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #333;
+            padding: 5px 12px;
+            border-radius: 12px;
+            color: #888;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-debug:hover {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+        
+        .required-star {
+            color: #e74c3c;
+            margin-left: 2px;
+        }
+        
+        .helper-text {
+            color: #666;
+            font-size: 12px;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body class="teacher-bg">
+
+<h1 class="main-title">📚 Upload Homework</h1>
+
+<div class="card" style="max-width: 650px;">
+    <h2>📝 Add Homework Assignment</h2>
+    
+    <!-- Message Box -->
+    <div id="messageBox" class="message-box"></div>
+    
+    <!-- Debug Box -->
+    <div id="debugBox" class="debug-box">
+        <div id="debugContent">Waiting for upload...</div>
+    </div>
+    
+    <!-- Upload Form -->
+    <form id="uploadForm" class="upload-form" onsubmit="handleSubmit(event)">
+        
+        <!-- Title -->
+        <label for="hwTitle">Title <span class="required-star">*</span></label>
+        <input type="text" id="hwTitle" placeholder="e.g., Algebra Homework - Chapter 5" required>
+        
+        <!-- Description -->
+        <label for="hwDesc">Description</label>
+        <textarea id="hwDesc" rows="3" placeholder="Brief description of the homework assignment..."></textarea>
+        
+        <!-- Grade Selection -->
+        <label for="hwGrade">Assign to Grade <span class="required-star">*</span></label>
+        <select id="hwGrade" required>
+            <option value="All Grades">📚 All Grades</option>
+            <option value="Grade 8">Grade 8</option>
+            <option value="Grade 9">Grade 9</option>
+            <option value="Grade 10">Grade 10</option>
+            <option value="Grade 11">Grade 11</option>
+            <option value="Grade 12">Grade 12</option>
+        </select>
+        <div class="helper-text">Select which grade this homework is for. "All Grades" makes it visible to everyone.</div>
+        
+        <!-- File Upload -->
+        <label for="hwFile">File Attachment <span class="required-star">*</span></label>
+        <div class="file-input-wrapper" onclick="document.getElementById('hwFile').click()">
+            <p style="font-size: 36px; margin: 0;">📁</p>
+            <p>Click to select a file</p>
+            <p style="color: #666; font-size: 12px;">Supports: PDF, DOC, DOCX, PPT, PPTX, TXT, Images, ZIP</p>
+            <div id="fileName" class="file-name"></div>
+            <input type="file" id="hwFile" required accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif,.zip">
+        </div>
+        
+        <!-- Submit Button -->
+        <button type="submit" class="upload-btn" id="submitBtn">📤 Upload Homework</button>
+        
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button type="button" onclick="resetForm()" style="flex: 1; background: #666;">↻ Reset</button>
+            <button type="button" onclick="window.location.href='teacher.html'" style="flex: 1;">← Back</button>
+        </div>
+    </form>
+    
+    <!-- Recent Uploads -->
+    <div id="recentUploads" class="recent-uploads" style="display: none;">
+        <h3>📋 Recently Uploaded</h3>
+        <div id="recentList"></div>
+    </div>
+</div>
+
+<script>
+// Get user from localStorage
+const user = JSON.parse(localStorage.getItem("loggedInUser"));
+
+// Redirect if not logged in or not teacher
+if (!user || user.role !== "teacher") {
+    window.location.href = "index.html";
+}
+
+// DOM elements
+const form = document.getElementById('uploadForm');
+const submitBtn = document.getElementById('submitBtn');
+const messageBox = document.getElementById('messageBox');
+const debugBox = document.getElementById('debugBox');
+const debugContent = document.getElementById('debugContent');
+const recentUploads = document.getElementById('recentUploads');
+const recentList = document.getElementById('recentList');
+
+let recentItems = [];
+let debugVisible = false;
+
+// ============================================
+// ===== TOGGLE DEBUG =====
+// ============================================
+function toggleDebug() {
+    debugVisible = !debugVisible;
+    debugBox.classList.toggle('visible', debugVisible);
+}
+
+// ============================================
+// ===== SHOW MESSAGE =====
+// ============================================
+function showMessage(message, type = 'info') {
+    messageBox.textContent = message;
+    messageBox.className = 'message-box ' + type;
+    messageBox.style.display = 'block';
+    
+    // Auto hide after 5 seconds
+    clearTimeout(messageBox._timeout);
+    messageBox._timeout = setTimeout(() => {
+        messageBox.style.display = 'none';
+    }, 5000);
+}
+
+// ============================================
+// ===== UPDATE DEBUG =====
+// ============================================
+function updateDebug(message, isError = false) {
+    debugContent.textContent = message;
+    debugBox.className = 'debug-box visible' + (isError ? ' error' : '');
+    debugBox.style.display = 'block';
+}
+
+// ============================================
+// ===== FILE NAME DISPLAY =====
+// ============================================
+document.getElementById('hwFile').addEventListener('change', function() {
+    const fileName = this.files[0] ? this.files[0].name : '';
+    document.getElementById('fileName').textContent = fileName;
+});
+
+// ============================================
+// ===== HANDLE SUBMIT =====
+// ============================================
+async function handleSubmit(event) {
+    event.preventDefault();
+    
+    // Get form values
+    const title = document.getElementById('hwTitle').value.trim();
+    const description = document.getElementById('hwDesc').value.trim();
+    const grade_level = document.getElementById('hwGrade').value;
+    const file = document.getElementById('hwFile').files[0];
+    
+    // Validate
+    if (!title) {
+        showMessage('❌ Please enter a title', 'error');
+        return;
+    }
+    
+    if (!file) {
+        showMessage('❌ Please select a file to upload', 'error');
+        return;
+    }
+    
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        showMessage('❌ File is too large. Maximum size is 10MB.', 'error');
+        return;
+    }
+    
+    // Validate file type
+    const allowedTypes = [
+        'application/pdf', 
+        'application/msword', 
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain',
+        'image/jpeg', 'image/png', 'image/gif',
+        'application/zip'
+    ];
+    
+    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|ppt|pptx|xls|xlsx|txt|jpg|jpeg|png|gif|zip)$/i)) {
+        showMessage('❌ File type not supported. Please upload a PDF, Word, PowerPoint, Excel, Text, Image, or ZIP file.', 'error');
+        return;
+    }
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description || '');
+    formData.append('grade_level', grade_level);
+    formData.append('file', file);
+    
+    // Debug info
+    const debugMsg = 
+        `📤 Uploading homework:\n` +
+        `📝 Title: ${title}\n` +
+        `📚 Grade: ${grade_level}\n` +
+        `📄 File: ${file.name} (${(file.size / 1024).toFixed(1)} KB)\n` +
+        `👤 Teacher: ${user.email}`;
+    updateDebug(debugMsg);
+    
+    // Disable button and show loading
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ Uploading...';
+    showMessage('⏳ Uploading homework...', 'info');
+    
+    try {
+        const response = await fetch('/upload-homework', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showMessage(`✅ ${data.message} (📚 ${grade_level})`, 'success');
+            updateDebug(`✅ Upload successful!\n📝 ${title}\n📚 ${grade_level}\n📄 ${file.name}`);
+            
+            // Add to recent list
+            addRecentItem(title, grade_level, file.name);
+            
+            // Reset form
+            resetForm();
+        } else {
+            showMessage('❌ ' + data.message, 'error');
+            updateDebug(`❌ Upload failed: ${data.message}`, true);
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        showMessage('❌ Server error. Please try again.', 'error');
+        updateDebug(`❌ Server error: ${error.message}\nStack: ${error.stack}`, true);
+    }
+    
+    // Re-enable button
+    submitBtn.disabled = false;
+    submitBtn.textContent = '📤 Upload Homework';
+}
+
+// ============================================
+// ===== ADD RECENT ITEM =====
+// ============================================
+function addRecentItem(title, grade, fileName) {
+    recentItems.unshift({
+        title,
+        grade,
+        fileName,
+        time: new Date().toLocaleString()
+    });
+    
+    if (recentItems.length > 5) {
+        recentItems.pop();
+    }
+    
+    renderRecentItems();
+}
+
+// ============================================
+// ===== RENDER RECENT ITEMS =====
+// ============================================
+function renderRecentItems() {
+    if (recentItems.length === 0) {
+        recentUploads.style.display = 'none';
+        return;
+    }
+    
+    recentUploads.style.display = 'block';
+    let html = '';
+    recentItems.forEach(item => {
+        html += `
+            <div class="recent-item">
+                <div class="info">
+                    <strong>${escapeHtml(item.title)}</strong>
+                    <span class="grade-badge">📚 ${escapeHtml(item.grade)}</span>
+                    <br>
+                    <span class="time">📄 ${escapeHtml(item.fileName)} • ${item.time}</span>
+                </div>
+            </div>
+        `;
+    });
+    recentList.innerHTML = html;
+}
+
+// ============================================
+// ===== RESET FORM =====
+// ============================================
+function resetForm() {
+    document.getElementById('hwTitle').value = '';
+    document.getElementById('hwDesc').value = '';
+    document.getElementById('hwGrade').value = 'All Grades';
+    document.getElementById('hwFile').value = '';
+    document.getElementById('fileName').textContent = '';
+}
+
+// ============================================
+// ===== ESCAPE HTML =====
+// ============================================
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ============================================
+// ===== LOAD ON PAGE LOAD =====
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📚 Upload Homework page loaded');
+    console.log('👤 Teacher:', user.email);
+    
+    // Add debug toggle button to the page
+    const formActions = document.querySelector('.upload-form');
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'toggle-debug';
+    toggleBtn.textContent = '🐛 Toggle Debug';
+    toggleBtn.onclick = toggleDebug;
+    toggleBtn.style.cssText = 'margin: 5px 0;';
+    
+    // Insert after the form
+    formActions.parentNode.insertBefore(toggleBtn, formActions.nextSibling);
+});
+</script>
+
+</body>
+</html>

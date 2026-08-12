@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage My Content</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Additional styles for this page */
+        .section-content {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 10px;
+            min-height: 100px;
+        }
+
+        .section-content h3 {
+            color: white;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        /* Scrollbar styling */
+        #marksList::-webkit-scrollbar,
+        #announcementsList::-webkit-scrollbar,
+        #homeworkList::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #marksList::-webkit-scrollbar-track,
+        #announcementsList::-webkit-scrollbar-track,
+        #homeworkList::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+
+        #marksList::-webkit-scrollbar-thumb,
+        #announcementsList::-webkit-scrollbar-thumb,
+        #homeworkList::-webkit-scrollbar-thumb {
+            background: #06d3f7;
+            border-radius: 10px;
+        }
+
+        /* Tab styles */
+        .tab-btn {
+            transition: all 0.3s ease;
+            min-width: 140px;
+            padding: 12px 24px;
+            font-size: 16px;
+        }
+
+        .tab-btn:hover {
+            transform: scale(1.05);
+            opacity: 1 !important;
+        }
+
+        .tab-btn.active {
+            opacity: 1 !important;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(6, 211, 247, 0.3);
+        }
+
+        .tab-btn.inactive {
+            opacity: 0.5;
+        }
+
+        .record-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .record-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .record-info {
+            flex: 1;
+        }
+
+        .record-info strong {
+            color: #06d3f7;
+        }
+
+        .record-info .email {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .record-info .details {
+            color: #888;
+            font-size: 13px;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            min-width: 60px;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-left: 10px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #aaa;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            margin: 5px 0;
+        }
+
+        .empty-state small {
+            color: #666;
+        }
+
+        .empty-state .upload-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 25px;
+            background: #f39c12;
+            color: white;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .empty-state .upload-link:hover {
+            background: #e67e22;
+            transform: scale(1.05);
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 12px;
+        }
+
+        .error-state .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .error-state .retry-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 25px;
+            background: #3498db;
+            color: white;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .error-state .retry-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .score-high {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        .score-medium {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .score-low {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 30px;
+            color: #aaa;
+        }
+
+        .loading-spinner .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid #06d3f7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body class="teacher-bg">
+
+<h1 class="main-title">🗑️ Manage My Content</h1>
+
+<div class="card">
+    <h2 style="color: white; text-align: center;">All My Uploaded Content</h2>
+    
+    <!-- Tab Navigation - Only 3 tabs -->
+    <div class="tab-container">
+        <button class="tab-btn active" onclick="showSection('marks')" id="tabMarks" style="background: #3498db;">📊 Marks</button>
+        <button class="tab-btn inactive" onclick="showSection('announcements')" id="tabAnnouncements" style="background: #9b59b6;">📢 Announcements</button>
+        <button class="tab-btn inactive" onclick="showSection('homework')" id="tabHomework" style="background: #2ecc71;">📚 Homework</button>
+    </div>
+
+    <!-- Marks Section -->
+    <div id="marksSection" class="section-content">
+        <h3>📊 Marks</h3>
+        <div id="marksList"></div>
+    </div>
+
+    <!-- Announcements Section -->
+    <div id="announcementsSection" class="section-content" style="display:none;">
+        <h3>📢 Announcements</h3>
+        <div id="announcementsList"></div>
+    </div>
+
+    <!-- Homework Section -->
+    <div id="homeworkSection" class="section-content" style="display:none;">
+        <h3>📚 Homework</h3>
+        <div id="homeworkList"></div>
+    </div>
+
+    <button onclick="window.location.href='teacher.html'" style="margin-top: 20px; width: 100%; padding: 12px;">← Back to Dashboard</button>
+</div>
+
+<script>
+let currentSection = 'marks';
+
+// Show selected section
+function showSection(section) {
+    currentSection = section;
+    
+    // Hide all sections
+    document.querySelectorAll('.section-content').forEach(el => el.style.display = 'none');
+    
+    // Show selected section
+    document.getElementById(section + 'Section').style.display = 'block';
+    
+    // Update tab styles
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.add('inactive');
+    });
+    
+    const tabId = 'tab' + section.charAt(0).toUpperCase() + section.slice(1);
+    const tabElement = document.getElementById(tabId);
+    if (tabElement) {
+        tabElement.classList.remove('inactive');
+        tabElement.classList.add('active');
+    }
+    
+    // Load data
+    if (section === 'marks') loadMarks();
+    else if (section === 'announcements') loadAnnouncements();
+    else if (section === 'homework') loadHomework();
+}
+
+// ============================================
+// ===== LOAD MARKS =====
+// ============================================
+async function loadMarks() {
+    const container = document.getElementById('marksList');
+    container.innerHTML = `
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading marks...</p>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch('/all-marks');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const marks = await response.json();
+        
+        if (!Array.isArray(marks) || marks.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="icon">📊</span>
+                    <p>No marks uploaded yet.</p>
+                    <small>Start by uploading marks for students.</small>
+                    <br>
+                    <a href="upload-marks.html" class="upload-link">📊 Upload Marks</a>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        marks.forEach(m => {
+            const score = parseFloat(m.score) || 0;
+            let scoreClass = 'score-medium';
+            if (score >= 70) scoreClass = 'score-high';
+            else if (score < 50) scoreClass = 'score-low';
+            
+            const studentDisplay = m.full_name ? `${m.full_name}` : m.student_email;
+            const date = m.created_at ? new Date(m.created_at).toLocaleDateString('en-GB') : 'Unknown date';
+            
+            html += `
+                <div class="record-item" style="border-left: 3px solid ${score >= 70 ? '#2ecc71' : score >= 50 ? '#f39c12' : '#e74c3c'};">
+                    <div class="record-info">
+                        <strong>${m.subject || 'Unknown Subject'}</strong>
+                        <span style="color: #aaa;"> → </span>
+                        <span style="color: white;">${studentDisplay}</span>
+                        <br>
+                        <span class="details">
+                            ${m.term || 'No term'} • 
+                            Score: <span class="${scoreClass}">${score}%</span>
+                            ${date ? ` • 📅 ${date}` : ''}
+                        </span>
+                        <br>
+                        <span class="email">${m.student_email}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteMark(${m.mark_id})">🗑️ Delete</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error loading marks:', error);
+        container.innerHTML = `
+            <div class="error-state">
+                <span class="icon">❌</span>
+                <p>Error loading marks</p>
+                <small>${error.message || 'Please try again later.'}</small>
+                <br>
+                <button class="retry-btn" onclick="loadMarks()">🔄 Retry</button>
+            </div>
+        `;
+    }
+}
+
+// ============================================
+// ===== DELETE MARK =====
+// ============================================
+async function deleteMark(id) {
+    if (!confirm('⚠️ Are you sure you want to delete this mark?')) return;
+    
+    try {
+        const response = await fetch('/delete-mark/' + id, {
+            method: 'DELETE'
+        });
+        const data = await response.json();
+        alert(data.message);
+        if (data.success) loadMarks();
+    } catch (error) {
+        alert('❌ Error deleting mark: ' + error.message);
+    }
+}
+
+// ============================================
+// ===== LOAD ANNOUNCEMENTS =====
+// ============================================
+async function loadAnnouncements() {
+    const container = document.getElementById('announcementsList');
+    container.innerHTML = `
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading announcements...</p>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch('/announcements');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const announcements = await response.json();
+        
+        if (!Array.isArray(announcements) || announcements.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="icon">📢</span>
+                    <p>No announcements uploaded yet.</p>
+                    <small>Create announcements for students and staff.</small>
+                    <br>
+                    <a href="upload-announcements.html" class="upload-link">📢 Post Announcement</a>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        announcements.forEach(a => {
+            const date = a.created_at ? new Date(a.created_at).toLocaleDateString('en-GB') : 'Unknown date';
+            const messagePreview = a.message ? a.message.substring(0, 100) : '';
+            
+            html += `
+                <div class="record-item" style="border-left: 3px solid #9b59b6;">
+                    <div class="record-info">
+                        <strong style="color: #9b59b6;">${a.title || 'Untitled'}</strong>
+                        <br>
+                        <span class="details">${messagePreview}${a.message && a.message.length > 100 ? '...' : ''}</span>
+                        <br>
+                        <span class="details">📅 ${date}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteAnnouncement(${a.announcement_id})">🗑️ Delete</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading announcements:', error);
+        container.innerHTML = `
+            <div class="error-state">
+                <span class="icon">❌</span>
+                <p>Error loading announcements</p>
+                <small>${error.message}</small>
+                <br>
+                <button class="retry-btn" onclick="loadAnnouncements()">🔄 Retry</button>
+            </div>
+        `;
+    }
+}
+
+// ============================================
+// ===== DELETE ANNOUNCEMENT =====
+// ============================================
+async function deleteAnnouncement(id) {
+    if (!confirm('⚠️ Are you sure you want to delete this announcement?')) return;
+    
+    try {
+        const response = await fetch('/delete-announcement/' + id, {
+            method: 'DELETE'
+        });
+        const data = await response.json();
+        alert(data.message);
+        if (data.success) loadAnnouncements();
+    } catch (error) {
+        alert('❌ Error deleting announcement: ' + error.message);
+    }
+}
+
+// ============================================
+// ===== LOAD HOMEWORK =====
+// ============================================
+async function loadHomework() {
+    const container = document.getElementById('homeworkList');
+    container.innerHTML = `
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading homework...</p>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch('/homework');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const homework = await response.json();
+        
+        if (!Array.isArray(homework) || homework.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="icon">📚</span>
+                    <p>No homework uploaded yet.</p>
+                    <small>Upload homework assignments for students.</small>
+                    <br>
+                    <a href="upload-homework.html" class="upload-link">📚 Upload Homework</a>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        homework.forEach(h => {
+            const date = h.created_at ? new Date(h.created_at).toLocaleDateString('en-GB') : 'Unknown date';
+            
+            html += `
+                <div class="record-item" style="border-left: 3px solid #2ecc71;">
+                    <div class="record-info">
+                        <strong style="color: #2ecc71;">${h.title || 'Untitled'}</strong>
+                        <br>
+                        <span class="details">${h.description || 'No description'}</span>
+                        <br>
+                        <span class="details">📅 ${date}</span>
+                        ${h.file_path ? `<br><span class="details">📎 <a href="${h.file_path}" target="_blank" style="color: #06d3f7;">View File</a></span>` : ''}
+                    </div>
+                    <button class="delete-btn" onclick="deleteHomework(${h.homework_id})">🗑️ Delete</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading homework:', error);
+        container.innerHTML = `
+            <div class="error-state">
+                <span class="icon">❌</span>
+                <p>Error loading homework</p>
+                <small>${error.message}</small>
+                <br>
+                <button class="retry-btn" onclick="loadHomework()">🔄 Retry</button>
+            </div>
+        `;
+    }
+}
+
+// ============================================
+// ===== DELETE HOMEWORK =====
+// ============================================
+async function deleteHomework(id) {
+    if (!confirm('⚠️ Are you sure you want to delete this homework?')) return;
+    
+    try {
+        const response = await fetch('/delete-homework/' + id, {
+            method: 'DELETE'
+        });
+        const data = await response.json();
+        alert(data.message);
+        if (data.success) loadHomework();
+    } catch (error) {
+        alert('❌ Error deleting homework: ' + error.message);
+    }
+}
+
+// ============================================
+// ===== PAGE LOAD =====
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Make sure the teacher is logged in
+    const user = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (!user || user.role !== "teacher") {
+        window.location.href = "index.html";
+    }
+    
+    // Start with marks tab
+    showSection('marks');
+});
+</script>
+
+</body>
+</html>

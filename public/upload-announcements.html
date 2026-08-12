@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Announcements</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="teacher-bg">
+
+<h1 class="main-title">📢 Upload Announcements</h1>
+
+<div class="card">
+    <h2>Post Announcement</h2>
+    
+    <input id="title" placeholder="Announcement Title">
+    <textarea id="message" placeholder="Announcement Message"></textarea>
+    
+    <!-- Grade Selection -->
+    <select id="announcementGrade" style="width:100%; padding:12px; margin:10px 0; border-radius:20px; border:none;">
+        <option value="All Grades">📚 All Grades</option>
+        <option value="Grade 8">Grade 8</option>
+        <option value="Grade 9">Grade 9</option>
+        <option value="Grade 10">Grade 10</option>
+        <option value="Grade 11">Grade 11</option>
+        <option value="Grade 12">Grade 12</option>
+    </select>
+
+    <button onclick="addAnnouncement()">Post Announcement</button>
+    <button onclick="window.location.href='teacher.html'">Back</button>
+</div>
+
+<script>
+async function addAnnouncement() {
+    const titleInput = document.getElementById("title");
+    const messageInput = document.getElementById("message");
+    const grade_level = document.getElementById("announcementGrade").value;
+
+    const title = titleInput.value.trim();
+    const message = messageInput.value.trim();
+
+    if (!title || !message) {
+        alert("Please fill all fields");
+        return;
+    }
+
+    if (title.length < 5) {
+        alert("Title must be at least 5 characters");
+        return;
+    }
+
+    if (message.length < 10) {
+        alert("Message must be at least 10 characters");
+        return;
+    }
+
+    try {
+        const response = await fetch("/add-announcement", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ title, message, grade_level })
+        });
+
+        const data = await response.json();
+        alert(data.message);
+
+        if (data.success) {
+            titleInput.value = "";
+            messageInput.value = "";
+            document.getElementById("announcementGrade").value = "All Grades";
+        }
+
+    } catch (error) {
+        alert("Server error. Please try again.");
+    }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Announcements</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="student-bg">
+
+<h1 class="main-title">📢 Announcements</h1>
+
+<div class="card">
+    <ul id="list"></ul>
+    <button onclick="window.location.href='learner.html'">Back</button>
+</div>
+
+<script>
+const user = JSON.parse(localStorage.getItem("loggedInUser"));
+const list = document.getElementById("list");
+
+// Get learner's grade
+const learnerGrade = user && user.grade_level ? user.grade_level : 'All Grades';
+
+fetch(`/announcements?grade=${encodeURIComponent(learnerGrade)}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.length === 0) {
+            list.innerHTML = "<li>No announcements for your grade yet.</li>";
+            return;
+        }
+
+        data.forEach(item => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <b>${item.title}</b><br>
+                ${item.message}<br>
+                ${item.grade_level ? `📚 ${item.grade_level}<br><br>` : '<br>'}
+            `;
+            list.appendChild(li);
+        });
+    });
+</script>
+
+</body>
+</html>

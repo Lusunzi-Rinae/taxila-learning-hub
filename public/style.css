@@ -1,0 +1,433 @@
+body {
+    font-family: Arial;
+    margin: 0;
+    padding: 0;
+    background: url("learners.jpeg") no-repeat center center fixed;
+    background-size: cover;
+}
+
+.main-title {
+    text-align: center;
+    color: rgb(6, 211, 247);
+}
+
+h1, h2 {
+    color: #eeeeee;
+}
+
+/* card */
+.card {
+    width: 450px;
+    margin: 20px auto;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* inputs */
+input, select {
+    width: 100%;
+    padding: 8px;
+    margin: 10px 0;
+}
+
+/* buttons (keep original look) */
+button {
+    background: rgb(6, 211, 247);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+}
+
+/* 🔥 login layout fix */
+.button-group {
+    display: flex;
+    align-items: center;
+}
+
+.button-group button:first-child {
+    margin-right: auto;
+}
+
+.right-buttons {
+    margin-left: auto;
+}
+
+/* 🔥 dashboard buttons as a carousel */
+.carousel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.menu {
+    display: flex;
+    flex-wrap: nowrap;          /* keep buttons in one row */
+    gap: 15px;
+    overflow-x: auto;            /* allow horizontal sliding */
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    padding: 10px 5px;
+    flex: 1;
+    scrollbar-width: none;       /* hide scrollbar (Firefox) */
+}
+
+.menu::-webkit-scrollbar {
+    display: none;               /* hide scrollbar (Chrome/Edge) */
+}
+
+.menu button {
+    flex: 0 0 calc((100% - 30px) / 3);   /* exactly 3 buttons per slide */
+    min-width: 0;
+    margin: 0;
+    min-height: 130px;                    /* taller, bigger tiles */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 17px;
+    padding: 14px;
+    border-radius: 24px;
+    scroll-snap-align: start;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* carousel arrows */
+.carousel-arrow {
+    min-width: 44px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 22px;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+
+/* special buttons */
+.dark-blue {
+    background: #0056b3;
+}
+
+.logout {
+    background: #ff5a5a;
+}
+
+/* backgrounds */
+.student-bg {
+    background: url("student-bg.jpg") no-repeat center center fixed;
+    background-size: cover;
+}
+
+.teacher-bg {
+    background: url("educator.png") no-repeat center center fixed;
+    background-size: cover;
+}
+
+.admin-bg {
+    background: url("admin.png") no-repeat center center fixed;
+    background-size: cover;
+}
+
+.upload-homework-bg {
+    background: url("educator0.png") no-repeat center center fixed;
+    background-size: cover;
+}
+html, body.student-bg {
+    min-height: 100%;
+}
+
+body.student-bg {
+    background: url("classes.png") no-repeat center center fixed !important;
+    background-size: cover !important;
+}
+
+#list {
+    color: white;
+}
+
+/* Step 3: UI consistency */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+.card {
+    background: rgba(0, 0, 0, 0.45);
+    color: white;
+    text-align: center;
+    backdrop-filter: blur(5px);
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 20px;
+    border: none;
+    font-size: 15px;
+}
+
+button {
+    min-width: 150px;
+    margin: 6px;
+    font-size: 15px;
+}
+
+a {
+    color: rgb(6, 211, 247);
+    font-weight: bold;
+}
+
+li {
+    color: white;
+    text-align: left;
+    margin-bottom: 12px;
+}
+
+.small-btn {
+    font-size: 12px;
+    padding: 6px 12px;
+    width: auto;
+    background-color: transparent;
+    color: white;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.signIn-btn{
+    background-color: #fafafa;
+    color: #4cc9f0;
+}
+.btn-login {
+    background-color: #00bcd4;   /* cyan */
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btn-login:hover {
+    background-color: #0097a7;   /* darker cyan on hover */
+}
+
+.btn-register {
+    background-color: #ff9800;   /* orange */
+    color: white;
+    padding: 14px;
+    border: 2px solid #ffffff;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btn-register:hover {
+    background-color: #e68900;   /* darker orange on hover */
+}
+
+/* 3D coverflow carousel */
+.carousel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+    perspective: 1000px;          /* gives the 3D depth */
+}
+
+.menu {
+    position: relative;
+    flex: 1;
+    height: 200px;
+    transform-style: preserve-3d;
+    overflow: visible;
+}
+
+.menu button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 150px;
+    height: 150px;
+    min-width: 0;
+    margin: 0;
+    padding: 12px;
+    border-radius: 24px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+    word-break: break-word;
+    transition: transform 0.45s ease, opacity 0.45s ease;
+    transform: translate(-50%, -50%);   /* JS overrides this per card */
+}
+
+.carousel-arrow {
+    min-width: 44px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 22px;
+    line-height: 1;
+    flex: 0 0 auto;
+    z-index: 200;
+}
+
+.tab-content {
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 10px 0;
+    text-align: left;
+}
+.tab-content ul { list-style: none; padding: 0; margin: 0; }
+.tab-content li {
+    background: rgba(255, 255, 255, 0.10);
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+.back-btn {
+    background: transparent;
+    border: none;
+    color: #06d3f7;
+    text-decoration: underline;
+    cursor: pointer;
+    min-width: 0;
+    padding: 0;
+    margin-bottom: 10px;
+}
+
+#attendance-container{
+    margin-top:20px;
+}
+
+.attendance-item{
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(8px);
+    padding:15px 20px;
+    margin-bottom:15px;
+    border-radius:12px;
+    color:white;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.date{
+    font-size:18px;
+}
+
+.status{
+    padding:6px 15px;
+    border-radius:20px;
+    font-weight:bold;
+}
+
+.present{
+    background:#2ecc71;
+    color:white;
+}
+
+.absent{
+    background:#e74c3c;
+    color:white;
+}
+
+.late{
+    background:#f39c12;
+    color:white;
+}
+
+/* Add these styles to your style.css */
+
+/* Status badges for attendance */
+.status-badge {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.status-badge.present {
+    background: #2ecc71;
+    color: white;
+}
+
+.status-badge.absent {
+    background: #e74c3c;
+    color: white;
+}
+
+.status-badge.late {
+    background: #f39c12;
+    color: white;
+}
+
+/* Attendance list items */
+#attendanceList ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#attendanceList li {
+    background: rgba(255, 255, 255, 0.10);
+    padding: 12px 18px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    color: white;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#attendanceList li:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Marks list styling */
+#marksList ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#marksList li {
+    background: rgba(255, 255, 255, 0.10);
+    padding: 12px 18px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    color: white;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#marksList li:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.BackButton{
+    position: absolute;
+    top: -15px;
+    left: -60px;
+
+    background: none;
+    border: none;
+    font-size: x-large;
+    font-weight:bol;
+    cursor: pointer;
+    color:rgb(215, 215, 215);
+}

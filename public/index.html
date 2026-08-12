@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TAXILA LEARNING HUB</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background:
+        linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)),
+        url("learners.jpeg") center/cover no-repeat,
+        linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      padding: 20px;
+    }
+    .brand { color:#00d4ee; font-size:clamp(28px,5vw,48px); font-weight:800; text-align:center; margin-bottom:24px; text-shadow:0 2px 12px rgba(0,0,0,.4); }
+    .auth-card { width:100%; max-width:420px; background:rgba(20,20,20,.55); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.12); border-radius:18px; padding:28px; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,.45); }
+    .auth-tabs { position:relative; display:flex; background:rgba(255,255,255,.08); border-radius:999px; margin-bottom:26px; }
+    .auth-tabs button { flex:1; padding:12px; border:none; background:transparent; color:#cfd8dc; font-size:15px; font-weight:600; cursor:pointer; z-index:1; transition:color .3s; }
+    .auth-tabs button.active { color:#fff; }
+    .tab-pill { position:absolute; top:4px; left:4px; width:calc(50% - 4px); height:calc(100% - 8px); border-radius:999px; background:#00bcd4; transition:transform .4s ease, background .4s ease; }
+    .auth-window { overflow:hidden; }
+    .auth-track { display:flex; width:200%; transition:transform .45s ease; }
+    .auth-slide { width:50%; padding:2px; }
+    .auth-card.show-register .auth-track { transform:translateX(-50%); }
+    .auth-card.show-register .tab-pill { transform:translateX(100%); background:#ff9800; }
+    .slide-title { color:#fff; font-size:22px; font-weight:700; margin-bottom:18px; text-align:center; }
+    .auth-slide input, .auth-slide select { 
+      width:100%; padding:14px 16px; margin-bottom:14px; border:none; border-radius:30px; font-size:15px; outline:none; background: white; color: #333;
+    }
+    .auth-slide select { appearance: auto; cursor: pointer; }
+    .auth-slide select option { background: white; color: #333; }
+    .auth-slide select option:disabled { color: #999; }
+    .auth-slide input::placeholder { color: #999; }
+    .submit-btn { width:100%; padding:14px; border:none; border-radius:30px; font-size:16px; font-weight:700; color:#fff; cursor:pointer; transition: transform 0.2s ease; }
+    .submit-btn:hover { transform: scale(1.02); }
+    .login-btn { background:#00bcd4; }
+    .register-btn { background:#ff9800; }
+    .helper { text-align:center; margin-top:16px; font-size:14px; color:#cfd8dc; }
+    .helper a { color:#00d4ee; cursor:pointer; text-decoration:underline; }
+    .forgot { display:block; text-align:center; margin-top:12px; }
+    .forgot a { color:#cfd8dc; font-size:13px; text-decoration:underline; cursor:pointer; }
+    .forgot a:hover { color:#00d4ee; }
+    
+    /* Grade field - hidden by default */
+    .grade-field { display: none; margin-bottom: 14px; }
+    .grade-field.show { display: block; }
+    
+    .grade-field select {
+      width: 100%;
+      padding: 14px 16px;
+      border: none;
+      border-radius: 30px;
+      font-size: 15px;
+      outline: none;
+      background: white;
+      color: #333;
+      cursor: pointer;
+    }
+    
+    .grade-field select option { 
+      background: white; 
+      color: #333; 
+      padding: 10px;
+    }
+    
+    .grade-field select option:disabled { color: #999; }
+    
+    .grade-field label {
+      display: block;
+      color: #aaa;
+      font-size: 13px;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    
+    .role-hint {
+      color: #666;
+      font-size: 11px;
+      text-align: right;
+      margin-top: -10px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1 class="brand">TAXILA LEARNING HUB</h1>
+
+  <div class="auth-card" id="authCard">
+    <div class="auth-tabs">
+      <span class="tab-pill"></span>
+      <button id="tabLogin" class="active" onclick="showLogin()">Login</button>
+      <button id="tabRegister" onclick="showRegister()">Register</button>
+    </div>
+
+    <div class="auth-window">
+      <div class="auth-track">
+
+        <!-- ===== LOGIN SLIDE ===== -->
+        <div class="auth-slide">
+          <div class="slide-title">Welcome back</div>
+          <input type="email" id="login-email" placeholder="Email" />
+          <input type="password" id="login-password" placeholder="Password" />
+          <button class="submit-btn login-btn" onclick="login()">Login</button>
+          <span class="forgot"><a onclick="window.location.href='forgot-password.html'">Forgot Password?</a></span>
+          <p class="helper">New here? <a onclick="showRegister()">Create an account</a></p>
+        </div>
+
+        <!-- ===== REGISTER SLIDE ===== -->
+        <div class="auth-slide">
+          <div class="slide-title">Create your account</div>
+          
+          <input type="text" id="reg-name" placeholder="Full name" />
+          <input type="email" id="reg-email" placeholder="Email" />
+          <input type="password" id="reg-password" placeholder="Password (min 6 characters)" />
+          
+          <!-- Role Selection -->
+          <select id="reg-role" onchange="toggleGradeField()">
+            <option value="Learner">👨‍🎓 Learner</option>
+            <option value="teacher">👩‍🏫 Teacher</option>
+            <option value="admin">👑 Admin</option>
+          </select>
+          
+          <!-- Grade Field - Shows only for Learners -->
+          <div id="gradeField" class="grade-field">
+            <label for="reg-grade">📚 Select your grade level</label>
+            <select id="reg-grade">
+              <option value="">-- Select Grade --</option>
+              <option value="Grade 8">Grade 8</option>
+              <option value="Grade 9">Grade 9</option>
+              <option value="Grade 10">Grade 10</option>
+              <option value="Grade 11">Grade 11</option>
+              <option value="Grade 12">Grade 12</option>
+            </select>
+          </div>
+          
+          <button class="submit-btn register-btn" onclick="register()">Register</button>
+          <p class="helper">Already have an account? <a onclick="showLogin()">Login</a></p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================
+    // ===== TAB MANAGEMENT =====
+    // ============================================
+    const card = document.getElementById("authCard");
+    const tabLogin = document.getElementById("tabLogin");
+    const tabRegister = document.getElementById("tabRegister");
+
+    function showLogin() { 
+      card.classList.remove("show-register"); 
+      tabLogin.classList.add("active"); 
+      tabRegister.classList.remove("active"); 
+    }
+
+    function showRegister() { 
+      card.classList.add("show-register"); 
+      tabRegister.classList.add("active"); 
+      tabLogin.classList.remove("active"); 
+      // Check initial role
+      toggleGradeField();
+    }
+
+    // ============================================
+    // ===== GRADE FIELD TOGGLE =====
+    // ============================================
+    function toggleGradeField() {
+      const role = document.getElementById("reg-role").value;
+      const gradeField = document.getElementById("gradeField");
+      
+      if (role === "Learner") {
+        gradeField.classList.add("show");
+        document.getElementById("reg-grade").required = true;
+      } else {
+        gradeField.classList.remove("show");
+        document.getElementById("reg-grade").required = false;
+      }
+    }
+
+    // ============================================
+    // ===== VALIDATION =====
+    // ============================================
+    function isValidEmail(email) {
+      const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return pattern.test(email);
+    }
+
+    // ============================================
+    // ===== REGISTER =====
+    // ============================================
+    async function register() {
+      const full_name = document.getElementById("reg-name").value.trim();
+      const email = document.getElementById("reg-email").value.trim();
+      const password = document.getElementById("reg-password").value;
+      const role = document.getElementById("reg-role").value;
+      const grade_level = document.getElementById("reg-grade").value;
+
+      // Validate name
+      if (!full_name || full_name.length < 2) {
+        alert("Please enter your full name (at least 2 characters)");
+        return;
+      }
+
+      // Validate email
+      if (!email) {
+        alert("Please enter your email address");
+        return;
+      }
+      if (!isValidEmail(email)) {
+        alert("Please enter a valid email address (e.g., name@domain.com)");
+        return;
+      }
+
+      // Validate password
+      if (!password) {
+        alert("Please enter a password");
+        return;
+      }
+      if (password.length < 6) {
+        alert("Password must be at least 6 characters long");
+        return;
+      }
+
+      // Validate grade for learners
+      if (role === "Learner") {
+        if (!grade_level) {
+          alert("Please select your grade level");
+          return;
+        }
+      }
+
+      // Show loading state
+      const btn = document.querySelector('.register-btn');
+      const originalText = btn.textContent;
+      btn.textContent = '⏳ Registering...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch("/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            full_name, 
+            email, 
+            password, 
+            role, 
+            grade_level: role === "Learner" ? grade_level : null 
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          alert("✅ Registration successful! Please login.");
+          showLogin();
+          // Clear form
+          document.getElementById("reg-name").value = "";
+          document.getElementById("reg-email").value = "";
+          document.getElementById("reg-password").value = "";
+          document.getElementById("reg-role").value = "Learner";
+          document.getElementById("reg-grade").value = "";
+          toggleGradeField();
+        } else {
+          alert("❌ " + data.message);
+        }
+      } catch (error) {
+        console.error("Register error:", error);
+        alert("❌ Registration failed. Please check your connection and try again.");
+      }
+
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+
+    // ============================================
+    // ===== LOGIN =====
+    // ============================================
+    async function login() {
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+
+      if (!email || !password) {
+        alert("Please enter both email and password");
+        return;
+      }
+
+      if (!isValidEmail(email)) {
+        alert("Please enter a valid email address");
+        return;
+      }
+
+      // Show loading state
+      const btn = document.querySelector('.login-btn');
+      const originalText = btn.textContent;
+      btn.textContent = '⏳ Logging in...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          alert("❌ " + data.message);
+          btn.textContent = originalText;
+          btn.disabled = false;
+          return;
+        }
+
+        // Save user to localStorage
+        localStorage.setItem("loggedInUser", JSON.stringify(data.user));
+
+        // Redirect based on role
+        const role = (data.user?.role || "").toLowerCase();
+        if (role === "learner") {
+          window.location.href = "learner.html";
+        } else if (role === "teacher") {
+          window.location.href = "teacher.html";
+        } else if (role === "admin") {
+          window.location.href = "admin.html";
+        } else {
+          alert("Unknown role: " + data.user?.role);
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }
+
+      } catch (error) {
+        console.error("Login error:", error);
+        alert("❌ Login failed. Please check your connection and try again.");
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // ============================================
+    // ===== ENTER KEY SUPPORT =====
+    // ============================================
+    document.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        // If in login tab
+        if (!card.classList.contains('show-register')) {
+          const activeElement = document.activeElement;
+          if (activeElement.id === 'login-email' || activeElement.id === 'login-password') {
+            login();
+          }
+        } else {
+          // If in register tab
+          const activeElement = document.activeElement;
+          if (activeElement.id === 'reg-name' || 
+              activeElement.id === 'reg-email' || 
+              activeElement.id === 'reg-password' ||
+              activeElement.id === 'reg-role' ||
+              activeElement.id === 'reg-grade') {
+            register();
+          }
+        }
+      }
+    });
+
+    // ============================================
+    // ===== INITIALIZE =====
+    // ============================================
+    // Show/hide grade field on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set default role
+      document.getElementById('reg-role').value = 'Learner';
+      toggleGradeField();
+    });
+  </script>
+
+</body>
+</html>

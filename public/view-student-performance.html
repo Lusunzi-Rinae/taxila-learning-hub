@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Student Performance</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="teacher-bg">
+
+<h1 class="main-title">📈 Student Performance</h1>
+
+<div class="card">
+    
+    <h2>Search Student Performance</h2>
+    
+    <div style="display: flex; gap: 10px;">
+        <input id="searchEmail" type="email" placeholder="Enter student email..." style="flex: 1;">
+        <button onclick="searchStudent()" style="min-width: 100px;">🔍 Search</button>
+    </div>
+    
+    <div id="studentInfo" style="display: none; margin-top: 20px;">
+        <div id="performanceSummary"></div>
+        <div id="marksDetails"></div>
+    </div>
+    
+    <hr style="border-color: rgba(255,255,255,0.1); margin: 30px 0;">
+    
+    <h3>📊 All Recent Marks</h3>
+    <div id="allMarks" style="max-height: 400px; overflow-y: auto; text-align: left;"></div>
+    
+    <button onclick="window.location.href='teacher.html'" style="margin-top: 20px;">← Back to Dashboard</button>
+</div>
+
+<script>
+// Load all marks on page load
+document.addEventListener("DOMContentLoaded", function() {
+    loadAllMarks();
+});
+
+async function searchStudent() {
+    const email = document.getElementById("searchEmail").value.trim();
+    
+    if (!email) {
+        alert("❌ Please enter a student email");
+        return;
+    }
+    
+    if (!isValidEmail(email)) {
+        alert("❌ Please enter a valid email");
+        return;
+    }
+    
+    try {
+        // Get student info
+        const userResponse = await fetch("/users");
+        const users = await userResponse.json();
+        const student = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+        
+        if (!student) {
+            alert("❌ Student not found");
+            return;
+        }
+        
+        // Get performance summary
+        const perfResponse = await fetch("/student-performance/" + encodeURIComponent(email));
+        const performance = await perfResponse.json();
+        
+        // Get all marks for this student
+        const marksResponse = await fetch("/marks/" + encodeURIComponent(email));
+        const marks = await marksResponse.json();
+        
+        displayStudentPerformance(student, performance, marks);
+        
+    } catch (error) {
+        console.error("Error:", error);
+        alert("❌ Error fetching student data");
+    }
+}
+
+function displayStudentPerformance(student, performance, marks) {
+    const container = document.getElementById("studentInfo");
+    container.style.display = "block";
+    
+    // Summary
+    let summaryHtml = `
+        <div style="background: rgba(6, 211, 247, 0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(6, 211, 247, 0.2);">
+            <h3 style="color: #06d3f7; margin: 0;">👤 ${student.full_name}</h3>
+            <p style="color: #aaa; margin: 5px 0;">📧 ${student.email}</p>
+        </div>
+    `;
+    
+    if (performance.length === 0) {
+        summaryHtml += `<p style="color: #aaa; text-align: center;">No marks recorded for this student yet.</p>`;
+    } else {
+        // Calculate overall average
+        let totalScore = 0;
+        let count = 0;
+        performance.forEach(p => {
+            totalScore += parseFloat(p.average);
+            count++;
+        });
+        const overallAvg = (totalScore / count).toFixed(1);
+        
+        summaryHtml += `
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+                <div style="background: rgba(46, 204, 113, 0.2); padding: 12px; border-radius: 10px; text-align: center;">
+                    <div style="color: #2ecc71; font-size: 24px; font-weight: bold;">${overallAvg}%</div>
+                    <div style="color: #aaa; font-size: 12px;">📊 Overall Average</div>
+                </div>
+                <div style="background: rgba(52, 152, 219, 0.2); padding: 12px; border-radius: 10px; text-align: center;">
+                    <div style="color: #3498db; font-size: 24px; font-weight: bold;">${performance.length}</div>
+                    <div style="color: #aaa; font-size: 12px;">📚 Subjects</div>
+                </div>
+                <div style="background: rgba(243, 156, 18, 0.2); padding: 12px; border-radius: 10px; text-align: center;">
+                    <div style="color: #f39c12; font-size: 24px; font-weight: bold;">${marks.length}</div>
+                    <div style="color: #aaa; font-size: 12px;">📝 Total Marks</div>
+                </div>
+            </div>
+        `;
+        
+        // Subject breakdown
+        summaryHtml += `<div style="margin-top: 15px;"><h4>📚 Subject Breakdown</h4>`;
+        performance.forEach(p => {
+            const avg = parseFloat(p.average);
+            const color = avg >= 70 ? '#2ecc71' : avg >= 50 ? '#f39c12' : '#e74c3c';
+            summaryHtml += `
+                <div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: white;">${p.subject}</span>
+                    <span style="color: ${color}; font-weight: bold;">
+                        Avg: ${avg}% 
+                        <small style="color: #888;">(Highest: ${p.highest}%, Lowest: ${p.lowest}%)</small>
+                    </span>
+                </div>
+            `;
+        });
+        summaryHtml += `</div>`;
+    }
+    
+    document.getElementById("performanceSummary").innerHTML = summaryHtml;
+    
+    // Marks details
+    let marksHtml = `<h4>📝 All Marks for ${student.full_name}</h4>`;
+    if (marks.length === 0) {
+        marksHtml += `<p style="color: #aaa;">No individual marks recorded yet.</p>`;
+    } else {
+        marksHtml += `<ul style="list-style: none; padding: 0;">`;
+        const sortedMarks = [...marks].reverse();
+        sortedMarks.forEach(m => {
+            const scoreColor = m.score >= 70 ? '#2ecc71' : m.score >= 50 ? '#f39c12' : '#e74c3c';
+            marksHtml += `
+                <li style="background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid ${scoreColor};">
+                    <span style="color: #ccc;">${m.subject} <small style="color: #888;">(${m.term})</small></span>
+                    <span style="color: ${scoreColor}; font-weight: bold; font-size: 18px;">${m.score}%</span>
+                </li>
+            `;
+        });
+        marksHtml += `</ul>`;
+    }
+    document.getElementById("marksDetails").innerHTML = marksHtml;
+}
+
+async function loadAllMarks() {
+    try {
+        const response = await fetch("/all-marks");
+        const marks = await response.json();
+        
+        const container = document.getElementById("allMarks");
+        
+        if (marks.length === 0) {
+            container.innerHTML = '<p style="color: #aaa; text-align: center;">No marks recorded yet.</p>';
+            return;
+        }
+        
+        let html = '<ul style="list-style: none; padding: 0;">';
+        marks.slice(0, 20).forEach(m => {
+            const scoreColor = m.score >= 70 ? '#2ecc71' : m.score >= 50 ? '#f39c12' : '#e74c3c';
+            const studentName = m.full_name || m.student_email;
+            const date = new Date(m.created_at).toLocaleDateString();
+            html += `
+                <li style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="color: #06d3f7; font-weight: bold;">${m.subject}</span>
+                        <span style="color: #aaa;">→</span>
+                        <span style="color: white;">${studentName}</span>
+                        <br>
+                        <small style="color: #666;">${m.term} • ${date}</small>
+                    </div>
+                    <span style="color: ${scoreColor}; font-weight: bold; font-size: 20px;">${m.score}%</span>
+                </li>
+            `;
+        });
+        html += '</ul>';
+        
+        if (marks.length > 20) {
+            html += `<p style="color: #666; text-align: center; font-size: 12px;">Showing last 20 marks</p>`;
+        }
+        
+        container.innerHTML = html;
+    } catch (error) {
+        console.error("Error loading marks:", error);
+        document.getElementById("allMarks").innerHTML = '<p style="color: #e74c3c;">Error loading marks</p>';
+    }
+}
+
+function isValidEmail(email) {
+    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return pattern.test(email);
+}
+</script>
+
+</body>
+</html>
