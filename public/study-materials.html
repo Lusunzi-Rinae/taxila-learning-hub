@@ -3,361 +3,52 @@
 <head>
     <title>Study Materials</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .materials-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            padding: 10px 0;
-        }
-        
-        .material-card {
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        
-        .material-card:hover {
-            background: rgba(255,255,255,0.08);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        
-        .material-card .icon {
-            font-size: 40px;
-            display: block;
-            margin-bottom: 10px;
-        }
-        
-        .material-card h3 {
-            color: white;
-            margin: 0 0 5px 0;
-            font-size: 18px;
-        }
-        
-        .material-card .subject-tag {
-            display: inline-block;
-            padding: 3px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            background: rgba(6,211,247,0.2);
-            color: #06d3f7;
-            margin-bottom: 10px;
-        }
-        
-        .material-card .grade-tag {
-            display: inline-block;
-            padding: 3px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            background: rgba(243,156,18,0.2);
-            color: #f39c12;
-            margin-left: 5px;
-        }
-        
-        .material-card p {
-            color: #aaa;
-            font-size: 14px;
-            margin: 10px 0;
-            line-height: 1.5;
-        }
-        
-        .material-card .actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .material-card .actions a {
-            padding: 8px 16px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-size: 13px;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .material-card .actions .view-btn {
-            background: #06d3f7;
-            color: white;
-        }
-        
-        .material-card .actions .view-btn:hover {
-            background: #04b5d9;
-            transform: scale(1.05);
-        }
-        
-        .material-card .actions .delete-btn {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        .material-card .actions .delete-btn:hover {
-            background: #c0392b;
-            transform: scale(1.05);
-        }
-        
-        .material-card .meta {
-            color: #666;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-        
-        .filters {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 10px;
-        }
-        
-        .filters select,
-        .filters input {
-            padding: 8px 15px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.05);
-            color: white;
-        }
-        
-        .filters select option {
-            background: #333;
-        }
-        
-        .filters .search-btn {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 20px;
-            background: #06d3f7;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .filters .search-btn:hover {
-            background: #04b5d9;
-        }
-        
-        .no-materials {
-            text-align: center;
-            padding: 40px;
-            color: #aaa;
-        }
-        
-        .no-materials .icon {
-            font-size: 64px;
-            display: block;
-            margin-bottom: 20px;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #aaa;
-        }
-        
-        .teacher-actions {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-    </style>
+    <script src="auth.js"></script>
 </head>
 
 <body class="student-bg">
 
-<h1 class="main-title">📚 Study Materials</h1>
+<h1 class="main-title">Study Materials</h1>
 
-<div class="card" style="max-width: 1100px;">
-    <!-- Filters -->
-    <div class="filters">
-        <select id="filterSubject" onchange="loadMaterials()">
-            <option value="">All Subjects</option>
-            <option value="Mathematics">📐 Mathematics</option>
-            <option value="English">📖 English</option>
-            <option value="Science">🔬 Science</option>
-            <option value="History">📜 History</option>
-            <option value="Geography">🌍 Geography</option>
-            <option value="Computer Science">💻 Computer Science</option>
-            <option value="Art">🎨 Art</option>
-            <option value="Music">🎵 Music</option>
-            <option value="Physical Education">🏃 Physical Education</option>
-        </select>
-        
-        <select id="filterGrade" onchange="loadMaterials()">
-            <option value="">All Grades</option>
-            <option value="Grade 8">Grade 8</option>
-            <option value="Grade 9">Grade 9</option>
-            <option value="Grade 10">Grade 10</option>
-            <option value="Grade 11">Grade 11</option>
-            <option value="Grade 12">Grade 12</option>
-            <option value="All Grades">All Grades</option>
-        </select>
-        
-        <input type="text" id="searchInput" placeholder="Search materials..." onkeyup="if(event.key==='Enter') loadMaterials()">
-        <button class="search-btn" onclick="loadMaterials()">🔍 Search</button>
-        <button class="search-btn" style="background: #666;" onclick="resetFilters()">↻ Reset</button>
-    </div>
-    
-    <!-- Materials Grid -->
-    <div id="materialsContainer">
-        <div class="loading">📚 Loading study materials...</div>
-    </div>
-    
-    <button onclick="window.location.href='learner.html'" style="margin-top: 20px; width: 100%;">← Back to Dashboard</button>
+<div class="card">
+    <div id="filterInfo" style="color: #888; text-align: center; margin-bottom: 15px; font-size: 14px;"></div>
+    <ul id="list"></ul>
+    <button onclick="window.location.href='learner.html'">Back</button>
 </div>
 
 <script>
+const list = document.getElementById("list");
 const user = JSON.parse(localStorage.getItem("loggedInUser"));
+const grade = user.grade_level || '';
+const stream = user.stream || '';
 
-if (!user) {
-    window.location.href = "Login.html";
-}
-
-const isTeacher = user.role === "teacher";
-
-async function loadMaterials() {
-    const container = document.getElementById('materialsContainer');
-    container.innerHTML = '<div class="loading">📚 Loading study materials...</div>';
-    
-    const subject = document.getElementById('filterSubject').value;
-    const grade = document.getElementById('filterGrade').value;
-    const search = document.getElementById('searchInput').value.trim();
-    
-    let url = '/study-materials?';
-    if (subject) url += `subject=${encodeURIComponent(subject)}&`;
-    if (grade) url += `grade_level=${encodeURIComponent(grade)}&`;
-    if (search) url += `search=${encodeURIComponent(search)}&`;
-    
-    try {
-        const response = await fetch(url);
-        const materials = await response.json();
-        
-        if (materials.length === 0) {
-            container.innerHTML = `
-                <div class="no-materials">
-                    <span class="icon">📚</span>
-                    <p>No study materials found</p>
-                    <p style="color: #666; font-size: 14px;">${isTeacher ? 'Upload some materials to help your students!' : 'Check back later for new resources.'}</p>
-                    ${isTeacher ? '<br><a href="upload-study-material.html" style="color: #06d3f7;">📤 Upload Study Material</a>' : ''}
-                </div>
-            `;
+fetch("/study-materials?grade=" + encodeURIComponent(grade) + "&stream=" + encodeURIComponent(stream))
+    .then(res => res.json())
+    .then(data => {
+        if (data.length === 0) {
+            list.innerHTML = "<li>No study materials available yet.</li>";
             return;
         }
-        
-        let html = '<div class="materials-grid">';
-        materials.forEach(m => {
-            const icon = getIcon(m.material_type);
-            const typeLabel = getTypeLabel(m.material_type);
-            const date = new Date(m.created_at).toLocaleDateString('en-GB');
-            
-            html += `
-                <div class="material-card">
-                    <span class="icon">${icon}</span>
-                    <h3>${escapeHtml(m.title)}</h3>
-                    <div>
-                        <span class="subject-tag">${escapeHtml(m.subject)}</span>
-                        ${m.grade_level ? `<span class="grade-tag">${escapeHtml(m.grade_level)}</span>` : ''}
-                        <span style="display:inline-block; padding:2px 10px; border-radius:10px; background:rgba(255,255,255,0.05); color:#888; font-size:11px; margin-left:5px;">${typeLabel}</span>
-                    </div>
-                    <p>${escapeHtml(m.description || 'No description provided.')}</p>
-                    <div class="actions">
-                        ${getActionButtons(m)}
-                    </div>
-                    <div class="meta">
-                        📅 ${date} • 👤 ${escapeHtml(m.uploaded_by || 'Unknown')}
-                    </div>
-                    ${isTeacher ? `
-                        <div class="teacher-actions">
-                            <button onclick="deleteMaterial(${m.material_id})" style="background:#e74c3c; color:white; border:none; padding:5px 15px; border-radius:15px; font-size:12px; cursor:pointer;">🗑️ Delete</button>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        });
-        html += '</div>';
-        container.innerHTML = html;
-        
-    } catch (error) {
-        console.error('Error loading materials:', error);
-        container.innerHTML = `
-            <div class="no-materials">
-                <span class="icon">❌</span>
-                <p>Error loading materials</p>
-                <p style="color: #666; font-size: 14px;">Please try refreshing the page.</p>
+
+        document.getElementById("filterInfo").innerHTML = `📚 Showing materials for <strong>${grade}</strong> ${stream ? '• <strong>' + stream + '</strong>' : ''}`;
+
+        data.forEach(item => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <b>${item.title}</b><br>
+                ${item.description || ""}<br>
+                ${item.file_path ? `<a href="${item.file_path}" target="_blank">Open Material</a>` : ''}
                 <br>
-                <button onclick="loadMaterials()" style="background: #06d3f7; border: none; padding: 8px 20px; border-radius: 20px; color: white; cursor: pointer;">🔄 Retry</button>
-            </div>
-        `;
-    }
-}
-
-function getIcon(type) {
-    switch(type) {
-        case 'file': return '📄';
-        case 'link': return '🔗';
-        case 'video': return '🎥';
-        default: return '📚';
-    }
-}
-
-function getTypeLabel(type) {
-    switch(type) {
-        case 'file': return 'File';
-        case 'link': return 'Link';
-        case 'video': return 'Video';
-        default: return 'Resource';
-    }
-}
-
-function getActionButtons(m) {
-    if (m.material_type === 'file' && m.file_path) {
-        return `<a href="${m.file_path}" target="_blank" class="view-btn">📄 View File</a>`;
-    } else if (m.link_url) {
-        const label = m.material_type === 'video' ? '🎥 Watch Video' : '🔗 Open Link';
-        return `<a href="${m.link_url}" target="_blank" class="view-btn">${label}</a>`;
-    }
-    return `<span style="color: #666; font-size: 13px;">No file or link available</span>`;
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function resetFilters() {
-    document.getElementById('filterSubject').value = '';
-    document.getElementById('filterGrade').value = '';
-    document.getElementById('searchInput').value = '';
-    loadMaterials();
-}
-
-async function deleteMaterial(id) {
-    if (!confirm('⚠️ Are you sure you want to delete this study material?')) return;
-    
-    try {
-        const response = await fetch(`/study-materials/${id}`, {
-            method: 'DELETE'
+                <small style="color: #888;">
+                    📚 ${item.grade_level || 'All Grades'} 
+                    ${item.stream ? '• ' + item.stream : ''}
+                    ${item.subject && item.subject !== 'All Subjects' ? '• 📋 ' + item.subject : ''}
+                </small>
+                <br><br>
+            `;
+            list.appendChild(li);
         });
-        const data = await response.json();
-        alert(data.message);
-        if (data.success) loadMaterials();
-    } catch (error) {
-        alert('❌ Error deleting material: ' + error.message);
-    }
-}
-
-// Load materials on page load
-document.addEventListener('DOMContentLoaded', loadMaterials);
+    });
 </script>
 
 </body>
