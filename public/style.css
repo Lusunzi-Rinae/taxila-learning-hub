@@ -8,7 +8,7 @@ body {
 
 .main-title {
     text-align: center;
-    color: rgb(6, 211, 247);
+    color:#f9f7f7;
 }
 
 h1, h2 {
@@ -121,11 +121,14 @@ button {
 .student-bg {
     background: url("student-bg.jpg") no-repeat center center fixed;
     background-size: cover;
+    filter:blur();
+
 }
 
 .teacher-bg {
     background: url("educator.png") no-repeat center center fixed;
     background-size: cover;
+
 }
 
 .admin-bg {
@@ -142,7 +145,9 @@ html, body.student-bg {
 }
 
 body.student-bg {
-    background: url("classes.png") no-repeat center center fixed !important;
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+        url("classes.png") no-repeat center center fixed !important;
     background-size: cover !important;
 }
 
@@ -157,6 +162,7 @@ body.student-bg {
 
 body {
     font-family: Arial, sans-serif;
+    filter: blur(50%);
 }
 
 .card {
@@ -431,3 +437,84 @@ li {
     cursor: pointer;
     color:rgb(215, 215, 215);
 }
+.edit-btn {
+    background: #f39c12;
+    min-width: 60px;
+    padding: 6px 12px;
+    font-size: 12px;
+    margin-left: 10px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.edit-btn:hover {
+    background: #e67e22;
+    transform: scale(1.05);
+}
+
+/* ===== Added for the carousel Learner Dashboard ===== */
+.learner-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-bottom: 10px;
+    text-align: left;
+}
+.learner-info .name {
+    display: block;
+    font-weight: bold;
+    color: white;
+    font-size: 16px;
+}
+.learner-info .email {
+    display: block;
+    color: #cfd3da;
+    font-size: 12px;
+}
+.grade-badge {
+    background: #06d3f7;
+    color: #06121a;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+.grade-badge.missing {
+    background: #e74c3c;
+    color: white;
+}
+.marks-summary, .stats-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.stat-card {
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 12px 16px;
+    text-align: center;
+    flex: 1;
+    min-width: 90px;
+}
+.stat-card .value, .stat-card .number {
+    font-size: 20px;
+    font-weight: 700;
+    display: block;
+    color: white;
+}
+.stat-card .label {
+    font-size: 11px;
+    color: #cfd3da;
+}
+.stat-card .value.high, .stat-card.present .number { color: #2ecc71; }
+.stat-card .value.medium { color: #f39c12; }
+.stat-card .value.low, .stat-card.absent .number { color: #e74c3c; }
+.stat-card.late .number { color: #f39c12; }
+.stat-card.total .number { color: #06d3f7; }
