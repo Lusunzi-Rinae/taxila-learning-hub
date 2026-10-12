@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Teachers</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <style>
+        .filter-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-container input {
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+            flex: 1;
+            min-width: 200px;
+        }
+        .filter-container input::placeholder {
+            color: #666;
+        }
+        .filter-container .refresh-btn {
+            background: #2ecc71;
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .filter-container .refresh-btn:hover {
+            background: #27ae60;
+        }
+
+        .teacher-card {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+        .teacher-card:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .teacher-card .teacher-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .teacher-card .teacher-header .name {
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .teacher-card .teacher-header .email {
+            color: #888;
+            font-size: 14px;
+        }
+        .teacher-card .teacher-header .delete-btn {
+            background: #e74c3c;
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .teacher-card .teacher-header .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .subject-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .subject-item {
+            background: rgba(6, 211, 247, 0.15);
+            padding: 4px 12px;
+            border-radius: 15px;
+            border: 1px solid rgba(6, 211, 247, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #06d3f7;
+        }
+        .subject-item .remove-btn {
+            background: transparent;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+            min-width: 0;
+        }
+        .subject-item .remove-btn:hover {
+            color: #c0392b;
+        }
+        .no-subjects {
+            color: #888;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        .assign-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 5px;
+        }
+        .assign-form select {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 13px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .assign-form select option {
+            background: #1a1a2e;
+            color: white;
+        }
+        .assign-form .assign-btn {
+            background: #2ecc71;
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .assign-form .assign-btn:hover {
+            background: #27ae60;
+        }
+
+        .no-teachers {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+        }
+        .no-teachers .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        #teacherList {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        #teacherList::-webkit-scrollbar {
+            width: 6px;
+        }
+        #teacherList::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        #teacherList::-webkit-scrollbar-thumb {
+            background: #06d3f7;
+            border-radius: 10px;
+        }
+        #teacherList::-webkit-scrollbar-thumb:hover {
+            background: #04b5d9;
+        }
+
+        .back-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+        }
+
+        .count-info {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .message-box {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .message-box.success {
+            display: block;
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+        }
+        .message-box.error {
+            display: block;
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+
+<body class="admin-bg">
+
+<h1 class="main-title">👨‍🏫 Manage Teachers</h1>
+
+<div class="card">
+    <h2>Teachers & Their Subjects</h2>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <div class="filter-container">
+        <input type="text" id="searchInput" placeholder="🔍 Search teachers..." onkeyup="filterTeachers()">
+        <button class="refresh-btn" onclick="loadTeachers()">🔄 Refresh</button>
+    </div>
+
+    <div class="count-info" id="countInfo">Loading...</div>
+
+    <div id="teacherList"></div>
+
+    <button onclick="window.location.href='admin.html'" class="back-btn">← Back to Dashboard</button>
+</div>
+
+<script>
+const admin = JSON.parse(localStorage.getItem("loggedInUser"));
+
+if (!admin || admin.role !== "admin") {
+    window.location.href = "Login.html";
+}
+
+let allTeachers = [];
+
+// ============================================
+// ===== SHOW MESSAGE =====
+// ============================================
+function showMessage(message, type) {
+    const box = document.getElementById('messageBox');
+    box.textContent = message;
+    box.className = 'message-box ' + type;
+    box.style.display = 'block';
+    setTimeout(() => {
+        box.style.display = 'none';
+    }, 4000);
+}
+
+// ============================================
+// ===== LOAD TEACHERS =====
+// ============================================
+async function loadTeachers() {
+    const container = document.getElementById('teacherList');
+    container.innerHTML = '<p style="color: #aaa; text-align: center;">📊 Loading teachers...</p>';
+
+    try {
+        const response = await fetch('/manage-teachers');
+        const data = await response.json();
+
+        if (!data.success || data.teachers.length === 0) {
+            container.innerHTML = `
+                <div class="no-teachers">
+                    <span class="icon">👨‍🏫</span>
+                    <p>No teachers found</p>
+                    <p style="color: #666; font-size: 13px;">Teachers will appear here after they register.</p>
+                </div>
+            `;
+            document.getElementById('countInfo').textContent = 'Showing 0 teachers';
+            return;
+        }
+
+        allTeachers = data.teachers;
+        renderTeachers(allTeachers);
+
+    } catch (error) {
+        console.error("Error loading teachers:", error);
+        container.innerHTML = '<p style="color: #e74c3c; text-align: center;">❌ Error loading teachers</p>';
+    }
+}
+
+// ============================================
+// ===== RENDER TEACHERS =====
+// ============================================
+function renderTeachers(teachers) {
+    const container = document.getElementById('teacherList');
+
+    if (teachers.length === 0) {
+        container.innerHTML = `
+            <div class="no-teachers">
+                <span class="icon">👨‍🏫</span>
+                <p>No teachers match your search</p>
+            </div>
+        `;
+        document.getElementById('countInfo').textContent = 'Showing 0 teachers';
+        return;
+    }
+
+    document.getElementById('countInfo').textContent = `Showing ${teachers.length} teachers`;
+
+    let html = '';
+    teachers.forEach(teacher => {
+        const subjectsHtml = teacher.subjects && teacher.subjects.length > 0
+            ? teacher.subjects.map(s => `
+                <span class="subject-item">
+                    ${s.subject} (${s.grade})
+                    <button class="remove-btn" onclick="removeSubject(${s.id}, '${teacher.email}')">✖</button>
+                </span>
+            `).join('')
+            : '<span class="no-subjects">No subjects assigned yet</span>';
+
+        html += `
+            <div class="teacher-card">
+                <div class="teacher-header">
+                    <div>
+                        <span class="name">${teacher.full_name}</span>
+                        <span class="email">📧 ${teacher.email}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteTeacher(${teacher.teacher_id})">🗑️ Delete Teacher</button>
+                </div>
+
+                <div class="subject-list">
+                    ${subjectsHtml}
+                </div>
+
+                <div class="assign-form">
+        <!-- Grade First -->
+    <select id="gradeSelect_${teacher.teacher_id}" onchange="loadSubjectsForGrade(${teacher.teacher_id})">
+        <option value="">Select Grade</option>
+        <option value="Grade 8">Grade 8</option>
+        <option value="Grade 9">Grade 9</option>
+        <option value="Grade 10">Grade 10</option>
+        <option value="Grade 11">Grade 11</option>
+        <option value="Grade 12">Grade 12</option>
+    </select>
+    
+    <!-- Subject Second (populated from database) -->
+    <select id="subjectSelect_${teacher.teacher_id}">
+        <option value="">Select Subject</option>
+    </select>
+    
+    <button class="assign-btn" onclick="assignSubject(${teacher.teacher_id}, '${teacher.email}')">➕ Assign</button>
+</div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+// ============================================
+// ===== FILTER TEACHERS =====
+// ============================================
+function filterTeachers() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+
+    if (!search) {
+        renderTeachers(allTeachers);
+        return;
+    }
+
+    const filtered = allTeachers.filter(t =>
+        t.full_name.toLowerCase().includes(search) ||
+        t.email.toLowerCase().includes(search)
+    );
+
+    renderTeachers(filtered);
+}
+
+// ============================================
+// ===== ASSIGN SUBJECT =====
+// ============================================
+async function assignSubject(teacherId, teacherEmail) {
+    const subjectSelect = document.getElementById(`subjectSelect_${teacherId}`);
+    const gradeSelect = document.getElementById(`gradeSelect_${teacherId}`);
+
+    const subject = subjectSelect.value;
+    const grade = gradeSelect.value;
+
+    if (!grade || !subject) {
+        showMessage('Please select both a grade and a subject', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/assign-teacher-subject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ teacher_email: teacherEmail, subject, grade })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showMessage(data.message, 'success');
+            subjectSelect.value = '';
+            gradeSelect.value = '';
+            loadTeachers();
+        } else {
+            showMessage(data.message, 'error');
+        }
+    } catch (error) {
+        showMessage('Error assigning subject', 'error');
+    }
+}
+
+// ============================================
+// ===== REMOVE SUBJECT =====
+// ============================================
+async function removeSubject(id, teacherEmail) {
+    if (!confirm(`Remove this subject from the teacher?`)) return;
+
+    try {
+        const response = await fetch('/remove-teacher-subject/' + id, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showMessage(data.message, 'success');
+            loadTeachers();
+        } else {
+            showMessage(data.message, 'error');
+        }
+    } catch (error) {
+        showMessage('Error removing subject', 'error');
+    }
+}
+
+// ============================================
+// ===== DELETE TEACHER =====
+// ============================================
+async function deleteTeacher(id) {
+    if (!confirm('⚠️ Are you sure you want to delete this teacher? This will also remove all their subject assignments.')) return;
+
+    try {
+        const response = await fetch('/delete-teacher/' + id, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showMessage(data.message, 'success');
+            loadTeachers();
+        } else {
+            showMessage(data.message, 'error');
+        }
+    } catch (error) {
+        showMessage('Error deleting teacher', 'error');
+    }
+}
+
+// ============================================
+// ===== PAGE LOAD =====
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    loadTeachers();
+});
+
+// ============================================
+// ===== LOAD SUBJECTS BY GRADE =====when assigning a subject to a teacher, the subjects dropdown should be populated based on the selected grade   
+// ============================================
+async function loadSubjectsForGrade(teacherId) {
+    const gradeSelect = document.getElementById(`gradeSelect_${teacherId}`);
+    const subjectSelect = document.getElementById(`subjectSelect_${teacherId}`);
+    const grade = gradeSelect.value;
+
+    // Clear current subjects
+    subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+
+    if (!grade) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/subjects-by-grade/' + encodeURIComponent(grade));
+        const data = await response.json();
+
+        if (data.success && data.subjects.length > 0) {
+            data.subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject.subject_name;
+                option.textContent = subject.subject_name;
+                subjectSelect.appendChild(option);
+            });
+        } else {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'No subjects available for this grade';
+            subjectSelect.appendChild(option);
+        }
+    } catch (error) {
+        console.error('Error loading subjects:', error);
+    }
+}
+
+</script>
+
+</body>
+</html>
