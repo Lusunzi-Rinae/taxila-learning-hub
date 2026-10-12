@@ -3,40 +3,6 @@ function isValidEmail(email) {
     return pattern.test(email);
 }
 
-async function register() {
-    const full_name = document.getElementById("reg-name").value;
-    const email = document.getElementById("reg-email").value;
-    const password = document.getElementById("reg-password").value;
-    const role = document.getElementById("reg-role").value;
-
-    if (!full_name || !email || !password) {
-        alert("Please fill all fields");
-        return;
-    }
-    if (password.length < 6) {
-        alert("Password must be at least 6 characters");
-        return;
-    }
-    if (!isValidEmail(email)) {
-        alert("Enter a valid email address");
-        return;
-    }
-
-    try {
-        const response = await fetch("/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ full_name, email, password, role })
-        });
-        const data = await response.json();
-        console.log("REGISTER RESPONSE:", data);
-        alert(data.message);
-        if (data.success) showLogin();
-    } catch (error) {
-        console.error("Register error:", error);
-        alert("Register failed. Check server or console.");
-    }
-}
 
 async function login() {
     const email = document.getElementById("login-email").value;
@@ -56,12 +22,17 @@ async function login() {
 
         const data = await response.json();
         console.log("LOGIN RESPONSE:", data);
-        alert(data.message);
 
-        if (!data.success) return;
+        if (!data.success) {
+            alert(data.message);  // Only show error messages
+            return;
+        }
 
         localStorage.setItem("loggedInUser", JSON.stringify(data.user));
-
+        // Save the JWT so future requests can be authenticated
+        if (data.token) {
+    localStorage.setItem("authToken", data.token);
+}
         const role = (data.user?.role || "").toLowerCase();
         if (role === "learner") window.location.href = "learner.html";
         else if (role === "teacher") window.location.href = "teacher.html";
@@ -73,9 +44,8 @@ async function login() {
         alert("Login failed. Check server or console.");
     }
 }
-
 function showTab(tabId, btn) {
-    document.getElementById("menuView").style.display = "none";   // hide the carousel
+    document.getElementById("menuView").style.display = "none";
     document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
     const panel = document.getElementById(tabId);
     if (panel) panel.style.display = "block";
@@ -86,7 +56,7 @@ function showTab(tabId, btn) {
 
 function showMenu() {
     document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
-    document.getElementById("menuView").style.display = "block";  // bring the carousel back
+    document.getElementById("menuView").style.display = "block";
     renderCarousel();
 }
 
@@ -118,3 +88,35 @@ function loadAttendance() {
             box.innerHTML = html + "</ul>";
         });
 }
+
+// Carousel functions
+let carouselIndex = 0;
+
+function renderCarousel() {
+    const items = document.querySelectorAll("#menu button");
+    items.forEach((btn, i) => {
+        const offset = i - carouselIndex;
+        const abs = Math.abs(offset);
+        const scale = offset === 0 ? 1.15 : Math.max(0.6, 1 - abs * 0.22);
+        btn.style.transform =
+            `translate(-50%, -50%) translateX(${offset * 95}px) scale(${scale}) rotateY(${offset * -40}deg)`;
+        btn.style.zIndex = 100 - abs;
+        btn.style.opacity = abs > 2 ? "0" : `${1 - abs * 0.3}`;
+        btn.style.pointerEvents = offset === 0 ? "auto" : "none";
+    });
+}
+
+function scrollMenu(direction) {
+    const total = document.querySelectorAll("#menu button").length;
+    carouselIndex = Math.min(Math.max(carouselIndex + direction, 0), total - 1);
+    renderCarousel();
+}
+
+// Run carousel on page load
+document.addEventListener("DOMContentLoaded", function () {
+    const total = document.querySelectorAll("#menu button").length;
+    if (total > 0) {
+        carouselIndex = Math.floor((total - 1) / 2);
+        renderCarousel();
+    }
+});
