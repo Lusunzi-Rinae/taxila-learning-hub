@@ -3,6 +3,12 @@
 <head>
     <title>Upload Announcements</title>
     <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <style>
+        select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 20px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 14px; }
+        select option { background: #1a1a2e; color: white; }
+        label { color: #aaa; display: block; margin-top: 10px; font-size: 14px; }
+    </style>
 </head>
 
 <body class="teacher-bg">
@@ -11,70 +17,88 @@
 
 <div class="card">
     <h2>Post Announcement</h2>
-    
-    <input id="title" placeholder="Announcement Title">
-    <textarea id="message" placeholder="Announcement Message"></textarea>
-    
-    <!-- Grade Selection -->
-    <select id="announcementGrade" style="width:100%; padding:12px; margin:10px 0; border-radius:20px; border:none;">
-        <option value="All Grades">📚 All Grades</option>
-        <option value="Grade 8">Grade 8</option>
-        <option value="Grade 9">Grade 9</option>
-        <option value="Grade 10">Grade 10</option>
-        <option value="Grade 11">Grade 11</option>
-        <option value="Grade 12">Grade 12</option>
-    </select>
 
-    <button onclick="addAnnouncement()">Post Announcement</button>
-    <button onclick="window.location.href='teacher.html'">Back</button>
+    <!-- Class Info Display -->
+    <div id="classInfo" style="background: rgba(6, 211, 247, 0.1); padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #06d3f7;">
+        📚 <span id="displaySubject" style="color: #06d3f7; font-weight: bold;">Mathematics</span>
+        <span id="displayGrade" style="color: white; font-weight: bold;">Grade 10</span>
+    </div>
+
+    <input id="title" placeholder="Announcement Title">
+    <textarea id="message" placeholder="Announcement Message" rows="4"></textarea>
+
+    <button onclick="addAnnouncement()" style="background: #2ecc71; width: 100%;">📢 Post Announcement</button>
+    <button onclick="goBackToDashboard()" style="margin-top: 20px; width: 100%; padding: 12px;">← Back to Dashboard</button>
 </div>
 
 <script>
-async function addAnnouncement() {
-    const titleInput = document.getElementById("title");
-    const messageInput = document.getElementById("message");
-    const grade_level = document.getElementById("announcementGrade").value;
+const user = JSON.parse(localStorage.getItem("loggedInUser"));
 
-    const title = titleInput.value.trim();
-    const message = messageInput.value.trim();
+if (!user || user.role !== "teacher") {
+    window.location.href = "Login.html";
+}
+
+// Get the selected class from localStorage
+const teacherClass = JSON.parse(localStorage.getItem('teacherClass'));
+
+if (!teacherClass) {
+    alert("Please select a class from the dashboard first.");
+    window.location.href = "teacher.html";
+}
+
+// Display the class info
+document.getElementById('displaySubject').textContent = teacherClass.subject;
+document.getElementById('displayGrade').textContent = teacherClass.grade;
+
+async function addAnnouncement() {
+    const title = document.getElementById("title").value.trim();
+    const message = document.getElementById("message").value.trim();
 
     if (!title || !message) {
         alert("Please fill all fields");
         return;
     }
 
-    if (title.length < 5) {
-        alert("Title must be at least 5 characters");
-        return;
-    }
-
-    if (message.length < 10) {
-        alert("Message must be at least 10 characters");
-        return;
-    }
+    // Get grade, stream, and subject from the selected class
+    const grade = teacherClass.grade;
+    const subject = teacherClass.subject;
+    const stream = '';
+    const posted_by = user ? user.full_name : '';
 
     try {
         const response = await fetch("/add-announcement", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ title, message, grade_level })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                title, 
+                message, 
+                grade, 
+                stream, 
+                subject, 
+                posted_by 
+            })
         });
 
         const data = await response.json();
         alert(data.message);
 
         if (data.success) {
-            titleInput.value = "";
-            messageInput.value = "";
-            document.getElementById("announcementGrade").value = "All Grades";
+            document.getElementById("title").value = "";
+            document.getElementById("message").value = "";
         }
-
     } catch (error) {
         alert("Server error. Please try again.");
     }
 }
+
+// ============================================
+// ===== GO BACK TO DASHBOARD =====
+// ============================================
+function goBackToDashboard() {
+    localStorage.setItem('returningFromPage', 'true');
+    window.location.href = 'teacher.html';
+}
+
 </script>
 
 </body>
