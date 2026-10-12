@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monitor Activity</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <style>
+        .activity-item {
+            background: rgba(255,255,255,0.05);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #06d3f7;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .activity-item .time {
+            color: #888;
+            font-size: 13px;
+            min-width: 80px;
+        }
+        .activity-item .user {
+            color: #06d3f7;
+            font-weight: bold;
+            min-width: 120px;
+        }
+        .activity-item .action {
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+        .activity-item .details {
+            color: #aaa;
+            font-size: 13px;
+        }
+        .activity-item .role-badge {
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .role-badge.learner { background: #2ecc71; color: white; }
+        .role-badge.teacher { background: #3498db; color: white; }
+        .role-badge.admin { background: #e74c3c; color: white; }
+        .role-badge.parent { background: #f39c12; color: white; }
+
+        .filter-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-container select, .filter-container input {
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+        }
+        .filter-container select option {
+            background: #1a1a2e;
+            color: white;
+        }
+        .filter-container button {
+            padding: 10px 25px;
+            border-radius: 20px;
+            border: none;
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .filter-container button:hover {
+            background: #2980b9;
+        }
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stats-bar .stat {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stats-bar .stat .number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #06d3f7;
+        }
+        .stats-bar .stat .label {
+            color: #aaa;
+            font-size: 12px;
+        }
+        .no-logs {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+        }
+        .no-logs .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+        .refresh-btn {
+            background: #2ecc71;
+            padding: 10px 25px;
+            border-radius: 20px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .refresh-btn:hover {
+            background: #27ae60;
+        }
+        .clear-btn {
+            background: #e74c3c;
+            padding: 10px 25px;
+            border-radius: 20px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .clear-btn:hover {
+            background: #c0392b;
+        }
+    </style>
+</head>
+
+<body class="admin-bg">
+
+<h1 class="main-title">📊 Monitor Activity</h1>
+
+<div class="card">
+    <h2>System Activity Log</h2>
+
+    
+
+    <!-- Filters -->
+    <div class="filter-container">
+        <select id="filterRole">
+            <option value="all">All Roles</option>
+            <option value="learner">Learner</option>
+            <option value="teacher">Teacher</option>
+            <option value="admin">Admin</option>
+
+        </select>
+        <select id="filterAction">
+            <option value="all">All Actions</option>
+            <option value="Logged in">🔵 Logged in</option>
+            <option value="Registered">🟢 Registered</option>
+            <option value="Uploaded homework">📚 Uploaded homework</option>
+            <option value="Added marks">📊 Added marks</option>
+            <option value="Recorded attendance">📅 Recorded attendance</option>
+            <option value="Posted announcement">📢 Posted announcement</option>
+            <option value="Uploaded study material">📂 Uploaded study material</option>
+        </select>
+        <input type="date" id="filterDate">
+        <button onclick="loadActivity()">🔍 Filter</button>
+        <button class="refresh-btn" onclick="loadActivity()">🔄 Refresh</button>
+        <button class="clear-btn" onclick="clearLogs()">🗑️ Clear All</button>
+    </div>
+
+    <!-- Activity List -->
+    <div id="activityList" style="max-height: 400px; overflow-y: auto;"></div>
+
+    <button onclick="window.location.href='admin.html'" style="margin-top: 20px; width: 100%; padding: 12px;">← Back to Dashboard</button>
+</div>
+
+<script>
+const user = JSON.parse(localStorage.getItem("loggedInUser"));
+
+if (!user || user.role !== "admin") {
+    window.location.href = "Login.html";
+}
+
+// ============================================
+// ===== LOAD ACTIVITY =====
+// ============================================
+async function loadActivity() {
+    const container = document.getElementById('activityList');
+    container.innerHTML = '<p style="color: #aaa; text-align: center;">📊 Loading activity logs...</p>';
+
+    const role = document.getElementById('filterRole').value;
+    const action = document.getElementById('filterAction').value;
+    const date = document.getElementById('filterDate').value;
+
+    let url = '/activity-logs';
+    const params = new URLSearchParams();
+    if (role !== 'all') params.append('role', role);
+    if (action !== 'all') params.append('action', action);
+    if (date) params.append('date', date);
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data.success || data.logs.length === 0) {
+            container.innerHTML = `
+                <div class="no-logs">
+                    <span class="icon">📭</span>
+                    <p>No activity logs found</p>
+                    <p style="color: #666; font-size: 13px;">Activity will appear here as users interact with the system.</p>
+                </div>
+            `;
+           
+        }
+
+        renderLogs(data.logs);
+
+    } catch (error) {
+        console.error("Error loading activity:", error);
+        container.innerHTML = '<p style="color: #e74c3c; text-align: center;">❌ Error loading activity logs</p>';
+    }
+}
+
+
+// ============================================
+// ===== RENDER LOGS =====
+// ============================================
+function renderLogs(logs) {
+    const container = document.getElementById('activityList');
+    
+    let html = '';
+    logs.slice(0, 100).forEach(log => {
+        const time = new Date(log.timestamp).toLocaleString();
+        const roleClass = log.role.toLowerCase();
+        
+        let icon = '📌';
+        if (log.action.includes('Logged in')) icon = '🔵';
+        else if (log.action.includes('Registered')) icon = '🟢';
+        else if (log.action.includes('homework')) icon = '📚';
+        else if (log.action.includes('marks')) icon = '📊';
+        else if (log.action.includes('attendance')) icon = '📅';
+        else if (log.action.includes('announcement')) icon = '📢';
+        else if (log.action.includes('study')) icon = '📂';
+
+        html += `
+            <div class="activity-item">
+                <span class="time">${time}</span>
+                <span class="user">${log.user_name}</span>
+                <span class="action">${icon} ${log.action}</span>
+                <span class="details">${log.details || ''}</span>
+                <span class="role-badge ${roleClass}">${log.role}</span>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// ============================================
+// ===== CLEAR LOGS =====
+// ============================================
+async function clearLogs() {
+    if (!confirm('⚠️ Are you sure you want to clear ALL activity logs? This cannot be undone!')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/clear-activity-logs', {
+            method: 'DELETE'
+        });
+        const data = await response.json();
+        alert(data.message);
+        if (data.success) {
+            loadActivity();
+        }
+    } catch (error) {
+        alert('❌ Error clearing logs');
+    }
+}
+
+// ============================================
+// ===== PAGE LOAD =====
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    loadActivity();
+});
+</script>
+
+</body>
+</html>
