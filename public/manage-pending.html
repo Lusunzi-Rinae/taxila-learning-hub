@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Manage Pending Users</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <style>
+        .pending-wrap {
+            width: 95%;
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 22px;
+            box-sizing: border-box;
+        }
+
+        .pending-panel {
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 20px;
+            padding: 35px 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 640px) {
+            .pending-panel {
+                padding: 22px 18px;
+            }
+        }
+
+        .pending-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pending-header h2 {
+            color: #06d3f7;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: none;
+            color: #06d3f7;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* ---- Tabs ---- */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border-radius: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #aaa;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            min-width: 0;
+            margin: 0;
+        }
+
+        .tab-btn.active {
+            background: rgba(6, 211, 247, 0.15);
+            border-color: #06d3f7;
+            color: #06d3f7;
+        }
+
+        .tab-btn:hover {
+            transform: scale(1.03);
+        }
+
+        /* ---- Filters row ---- */
+        .filters {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ccc;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .toggle-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #06d3f7;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .refresh-btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            margin: 0;
+            min-width: 0;
+        }
+
+        .refresh-btn:hover {
+            background: #27ae60;
+        }
+
+        .add-btn {
+            background: #06d3f7;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            margin: 0;
+            min-width: 0;
+            margin-left: auto;
+        }
+
+        .add-btn:hover {
+            background: #04b5d9;
+        }
+
+        .csv-btn {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            margin: 0;
+            min-width: 0;
+        }
+
+        .csv-btn:hover {
+            background: #e67e22;
+        }
+
+
+        /* ---- List ---- */
+        .count-info {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .user-list {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .user-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .user-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .user-list::-webkit-scrollbar-thumb {
+            background: #06d3f7;
+            border-radius: 10px;
+        }
+
+        .user-row {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px 18px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-left: 4px solid #888;
+            transition: background 0.2s ease;
+        }
+
+        .user-row:hover {
+            background: rgba(255, 255, 255, 0.09);
+        }
+
+        .user-row.pending {
+            border-left-color: #f39c12;
+        }
+
+        .user-row.activated {
+            border-left-color: #2ecc71;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .user-info .name {
+            color: white;
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .user-info .meta {
+            color: #aaa;
+            font-size: 12.5px;
+            line-height: 1.6;
+        }
+
+        .user-info .meta span {
+            display: inline-block;
+            margin-right: 12px;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .user-actions button {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 0;
+            margin: 0;
+        }
+
+        .user-actions .edit-btn {
+            background: #3498db;
+        }
+
+        .user-actions .edit-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .user-actions .delete-btn {
+            background: #e74c3c;
+        }
+
+        .user-actions .delete-btn:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        .user-actions button:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .status-badge {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.pending {
+            background: #f39c12;
+            color: white;
+        }
+
+        .status-badge.activated {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #888;
+        }
+
+        .empty-state .icon {
+            font-size: 52px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #06d3f7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .message-box {
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .message-box.success {
+            display: block;
+            background: rgba(46, 204, 113, 0.15);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+        }
+
+        .message-box.error {
+            display: block;
+            background: rgba(231, 76, 60, 0.15);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+
+        /* ---- Modal ---- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(6, 211, 247, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h3 {
+            color: #06d3f7;
+            margin: 0 0 20px 0;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .modal .field {
+            margin-bottom: 15px;
+        }
+
+        .modal .field label {
+            display: block;
+            color: #aaa;
+            font-size: 13px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        .modal .field input,
+        .modal .field select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .modal .field input:focus,
+        .modal .field select:focus {
+            border-color: #06d3f7;
+        }
+
+        .modal .field select option {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        .modal .field input::placeholder {
+            color: #666;
+        }
+
+        .modal .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal .actions button {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 0;
+            margin: 0;
+        }
+
+        .modal .actions .cancel-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .modal .actions .save-btn {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .modal .actions button:hover {
+            transform: scale(1.02);
+        }
+
+        .modal .actions button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="admin-bg">
+
+    <div class="pending-wrap">
+        <div class="pending-panel">
+
+            <div class="pending-header">
+                <h2>📝 Manage Pending Users</h2>
+                <button class="back-btn" onclick="goBack()">← Back to Dashboard</button>
+            </div>
+
+            <p style="color:#aaa; font-size:14px; margin-bottom:20px;">
+                Add learners and teachers who can then activate their own accounts. Only pre-approved people can
+                register.
+            </p>
+
+            <div id="messageBox" class="message-box"></div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" id="tabLearners" onclick="switchTab('Learner')">
+                    👥 Learners
+                </button>
+                <button class="tab-btn" id="tabTeachers" onclick="switchTab('teacher')">
+                    👨‍🏫 Teachers
+                </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <label class="toggle-label">
+                    <input type="checkbox" id="showActivated" onchange="reload()">
+                    Show activated users too
+                </label>
+
+                <button class="refresh-btn" onclick="reload()">🔄 Refresh</button>
+
+                <button class="csv-btn" onclick="openCsvModal()">📤 Upload CSV</button>
+
+                <button class="add-btn" onclick="openAddModal()">➕ Add User</button>
+            </div>
+
+            <!-- List -->
+            <div class="count-info" id="countInfo">Loading...</div>
+            <div class="user-list" id="userList"></div>
+
+        </div>
+    </div>
+
+    <!-- ===== Add User Modal ===== -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <h3 id="modalTitle">➕ Add Learner</h3>
+
+            <div class="field">
+                <label>Full Name *</label>
+                <input type="text" id="addFullName" placeholder="e.g. Sipho Ndlovu" />
+            </div>
+
+            <div class="field">
+                <label>Email *</label>
+                <input type="email" id="addEmail" placeholder="e.g. sipho@school.za" />
+            </div>
+
+            <div class="field">
+                <label>Date of Birth *</label>
+                <input type="date" id="addDob" />
+            </div>
+
+            <!-- Learner-only fields -->
+            <div id="learnerFields">
+                <div class="field">
+                    <label>Gender *</label>
+                    <select id="addGender">
+                        <option value="">-- Select --</option>
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Grade *</label>
+                    <select id="addGrade" onchange="onGradeChange()">
+                        <option value="">-- Select Grade --</option>
+                        <option value="Grade 8">Grade 8</option>
+                        <option value="Grade 9">Grade 9</option>
+                        <option value="Grade 10">Grade 10</option>
+                        <option value="Grade 11">Grade 11</option>
+                        <option value="Grade 12">Grade 12</option>
+                    </select>
+                </div>
+
+                <div class="field hidden" id="streamField">
+                    <label>Stream *</label>
+                    <select id="addStream">
+                        <option value="">-- Select Stream --</option>
+                        <option value="Science">🔬 Science</option>
+                        <option value="Commerce">📊 Commerce</option>
+                        <option value="Humanities">📜 Humanities</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="cancel-btn" onclick="closeAddModal()">Cancel</button>
+                <button class="save-btn" id="saveBtn" onclick="submitAdd()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Edit Modal ===== -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <h3 id="editModalTitle">✏️ Edit User</h3>
+
+            <input type="hidden" id="editPendingId" />
+
+            <div class="field">
+                <label>Full Name *</label>
+                <input type="text" id="editFullName" />
+            </div>
+
+            <div class="field">
+                <label>Email *</label>
+                <input type="email" id="editEmail" />
+            </div>
+
+            <div class="field">
+                <label>Date of Birth *</label>
+                <input type="date" id="editDob" />
+            </div>
+
+            <div id="editLearnerFields">
+                <div class="field">
+                    <label>Gender *</label>
+                    <select id="editGender">
+                        <option value="">-- Select --</option>
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Grade *</label>
+                    <select id="editGrade" onchange="onEditGradeChange()">
+                        <option value="">-- Select Grade --</option>
+                        <option value="Grade 8">Grade 8</option>
+                        <option value="Grade 9">Grade 9</option>
+                        <option value="Grade 10">Grade 10</option>
+                        <option value="Grade 11">Grade 11</option>
+                        <option value="Grade 12">Grade 12</option>
+                    </select>
+                </div>
+
+                <div class="field hidden" id="editStreamField">
+                    <label>Stream *</label>
+                    <select id="editStream">
+                        <option value="">-- Select Stream --</option>
+                        <option value="Science">🔬 Science</option>
+                        <option value="Commerce">📊 Commerce</option>
+                        <option value="Humanities">📜 Humanities</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
+                <button class="save-btn" id="editSaveBtn" onclick="submitEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CSV Upload Modal ===== -->
+    <div class="modal-overlay" id="csvModal">
+        <div class="modal">
+            <h3 id="csvModalTitle">📤 Bulk Upload</h3>
+
+            <p style="color:#aaa; font-size:13px; text-align:center; margin-bottom:15px;">
+                Upload a CSV file with multiple users.
+            </p>
+
+            <div style="text-align:center; margin-bottom:20px;">
+                <button class="csv-btn" onclick="downloadTemplate()"
+                    style="min-width:0; padding:10px 20px; font-size:13px;">
+                    ⬇️ Download CSV Template
+                </button>
+            </div>
+
+            <div class="field">
+                <label>Choose CSV file</label>
+                <input type="file" id="csvFile" accept=".csv" onchange="onCsvSelected(event)" />
+            </div>
+
+            <div id="csvPreview" style="display:none;">
+                <p style="color:#06d3f7; font-size:13px; margin-bottom:10px;">
+                    Preview (<span id="csvCount">0</span> rows):
+                </p>
+                <div id="csvPreviewList" style="
+                background: rgba(255,255,255,0.05);
+                border-radius: 10px;
+                padding: 12px;
+                max-height: 200px;
+                overflow-y: auto;
+                font-size: 13px;
+                color: #ccc;
+                margin-bottom: 15px;
+            "></div>
+            </div>
+
+            <div class="actions">
+                <button class="cancel-btn" onclick="closeCsvModal()">Cancel</button>
+                <button class="save-btn" id="csvSaveBtn" onclick="submitCsv()" disabled>Upload</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ AUTH ============
+        const user = JSON.parse(localStorage.getItem("loggedInUser"));
+        if (!user || user.role !== "admin") {
+            window.location.href = "index.html";
+        }
+
+        // ============ STATE ============
+        let currentRole = 'Learner';
+
+        // ============ UTILS ============
+        function showMessage(text, type = 'success') {
+            const box = document.getElementById('messageBox');
+            box.textContent = text;
+            box.className = 'message-box ' + type;
+            box.style.display = 'block';
+            setTimeout(() => { box.style.display = 'none'; }, 5000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text == null ? "" : String(text);
+            return div.innerHTML;
+        }
+
+        function formatDate(d) {
+            if (!d) return '';
+            const dt = new Date(d);
+            return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        // ============ TABS ============
+        function switchTab(role) {
+            currentRole = role;
+            document.getElementById('tabLearners').classList.toggle('active', role === 'Learner');
+            document.getElementById('tabTeachers').classList.toggle('active', role === 'teacher');
+            reload();
+        }
+
+        // ============ LOAD LIST ============
+        async function reload() {
+            const list = document.getElementById('userList');
+            const countInfo = document.getElementById('countInfo');
+            const showActivated = document.getElementById('showActivated').checked;
+
+            list.innerHTML = `
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    `;
+            countInfo.textContent = 'Loading...';
+
+            try {
+                const url = `/admin/pending-users?role=${currentRole}&activated=${showActivated}`;
+                const token = localStorage.getItem('authToken');
+
+                const r = await fetch(url, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await r.json();
+
+                if (!data.success) {
+                    list.innerHTML = `<p style="color:#e74c3c; text-align:center;">Error: ${escapeHtml(data.message)}</p>`;
+                    countInfo.textContent = '';
+                    return;
+                }
+
+                renderUsers(data.users, currentRole, showActivated);
+            } catch (err) {
+                console.error(err);
+                list.innerHTML = `<p style="color:#e74c3c; text-align:center;">Could not load pending users.</p>`;
+                countInfo.textContent = '';
+            }
+        }
+
+        // ============ RENDER USERS ============
+        function renderUsers(users, role, showActivated) {
+            const list = document.getElementById('userList');
+            const countInfo = document.getElementById('countInfo');
+
+            if (!users || users.length === 0) {
+                countInfo.textContent = '';
+                list.innerHTML = `
+            <div class="empty-state">
+                <span class="icon">📭</span>
+                <p>No ${role === 'Learner' ? 'learners' : 'teachers'} ${showActivated ? '' : 'pending'} yet.</p>
+                <p style="font-size:13px;">Click "➕ Add User" above to add some.</p>
+            </div>
+        `;
+                return;
+            }
+
+            const label = role === 'Learner' ? 'learner(s)' : 'teacher(s)';
+            countInfo.textContent = `Showing ${users.length} ${label}`;
+
+            let html = '';
+            users.forEach(u => {
+                const isActivated = u.activated === true || u.activated === 1;
+                const statusClass = isActivated ? 'activated' : 'pending';
+                const statusLabel = isActivated ? 'Activated' : 'Pending';
+
+                const metaParts = [];
+                metaParts.push(`📧 ${escapeHtml(u.email)}`);
+                if (u.role === 'Learner' && u.grade_level) metaParts.push(`📚 ${escapeHtml(u.grade_level)}`);
+                if (u.role === 'Learner' && u.stream) metaParts.push(`📖 ${escapeHtml(u.stream)}`);
+                if (isActivated && u.activated_at) {
+                    metaParts.push(`✅ Activated ${formatDate(u.activated_at)}`);
+                } else if (!isActivated) {
+                    metaParts.push(`📅 Added ${formatDate(u.created_at)}`);
+                }
+
+                const metaHtml = metaParts.map(p => `<span>${p}</span>`).join('');
+                const disabledAttr = isActivated ? 'disabled' : '';
+                const disabledTitle = isActivated ? 'Already activated — edit or delete in Manage Users' : '';
+
+                html += `
+                    <div class="user-row ${statusClass}">
+                     <div class="user-info">
+                      <div class="name">${escapeHtml(u.full_name)}</div>
+                      <div class="meta">${metaHtml}</div>
+                    </div>
+                    <div class="user-actions">
+                        <button class="edit-btn" 
+                                onclick="openEditModal(${u.pending_id})"
+                                ${disabledAttr}
+                                title="${disabledTitle}">✏️ Edit</button>
+                        <button class="delete-btn" 
+                                onclick="deleteUser(${u.pending_id}, '${escapeHtml(u.full_name).replace(/'/g, "\\'")}')"
+                                ${disabledAttr}
+                                title="${disabledTitle}">🗑️ Delete</button>
+        </div>
+    </div>
+`;
+            });
+
+            list.innerHTML = html;
+        }
+
+        // ============ ADD MODAL ============
+        function openAddModal() {
+            // Reset form
+            document.getElementById('addFullName').value = '';
+            document.getElementById('addEmail').value = '';
+            document.getElementById('addDob').value = '';
+            document.getElementById('addGender').value = '';
+            document.getElementById('addGrade').value = '';
+            document.getElementById('addStream').value = '';
+
+            // Set modal title based on current tab
+            document.getElementById('modalTitle').textContent =
+                currentRole === 'Learner' ? '➕ Add Learner' : '➕ Add Teacher';
+
+            // Show/hide learner-only fields
+            document.getElementById('learnerFields').classList.toggle('hidden', currentRole !== 'Learner');
+
+            // Reset stream visibility
+            onGradeChange();
+
+            // Show modal
+            document.getElementById('addModal').classList.add('active');
+            setTimeout(() => document.getElementById('addFullName').focus(), 100);
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('active');
+        }
+
+        function onGradeChange() {
+            const grade = document.getElementById('addGrade').value;
+            const streamField = document.getElementById('streamField');
+            if (grade === 'Grade 10' || grade === 'Grade 11' || grade === 'Grade 12') {
+                streamField.classList.remove('hidden');
+            } else {
+                streamField.classList.add('hidden');
+                document.getElementById('addStream').value = '';
+            }
+        }
+
+        async function submitAdd() {
+            const full_name = document.getElementById('addFullName').value.trim();
+            const email = document.getElementById('addEmail').value.trim();
+            const date_of_birth = document.getElementById('addDob').value;
+            const gender = document.getElementById('addGender').value;
+            const grade_level = document.getElementById('addGrade').value;
+            const stream = document.getElementById('addStream').value;
+
+            // Simple validation
+            if (!full_name || !email || !date_of_birth) {
+                alert('Please fill in Name, Email, and Date of Birth.');
+                return;
+            }
+            if (currentRole === 'Learner') {
+                if (!gender) { alert('Please select a gender.'); return; }
+                if (!grade_level) { alert('Please select a grade.'); return; }
+                if ((grade_level === 'Grade 10' || grade_level === 'Grade 11' || grade_level === 'Grade 12') && !stream) {
+                    alert('Please select a stream for Grade 10-12.');
+                    return;
+                }
+            }
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                const body = {
+                    role: currentRole,
+                    full_name,
+                    email,
+                    date_of_birth,
+                    gender: currentRole === 'Learner' ? gender : null,
+                    grade_level: currentRole === 'Learner' ? grade_level : null,
+                    stream: currentRole === 'Learner' ? stream : null
+                };
+
+                const r = await fetch('/admin/add-pending-user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await r.json();
+
+                if (data.success) {
+                    closeAddModal();
+                    showMessage('✅ ' + data.message, 'success');
+                    reload();
+                } else {
+                    showMessage('❌ ' + data.message, 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showMessage('❌ Could not save. Check the server.', 'error');
+            }
+
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save';
+        }
+
+        // ============ CSV UPLOAD ============
+        let parsedCsvRows = [];
+
+        function openCsvModal() {
+            // Reset state
+            parsedCsvRows = [];
+            document.getElementById('csvFile').value = '';
+            document.getElementById('csvPreview').style.display = 'none';
+            document.getElementById('csvPreviewList').innerHTML = '';
+            document.getElementById('csvCount').textContent = '0';
+            document.getElementById('csvSaveBtn').disabled = true;
+
+            // Set title based on tab
+            document.getElementById('csvModalTitle').textContent =
+                currentRole === 'Learner' ? '📤 Bulk Upload Learners' : '📤 Bulk Upload Teachers';
+
+            document.getElementById('csvModal').classList.add('active');
+        }
+
+        function closeCsvModal() {
+            document.getElementById('csvModal').classList.remove('active');
+        }
+
+        // ---- CSV Template Download ----
+        function downloadTemplate() {
+            let csv;
+
+            if (currentRole === 'Learner') {
+                csv = `full_name,email,date_of_birth,gender,grade_level,stream
+Sipho Ndlovu,sipho@school.za,2008-05-14,M,Grade 10,Science
+Thandi Mokoena,thandi@school.za,2007-09-22,F,Grade 11,Commerce
+Jabu Zulu,jabu@school.za,2010-01-08,M,Grade 9,`;
+            } else {
+                csv = `full_name,email,date_of_birth
+John Smith,john@school.za,1985-03-10
+Mary Dlamini,mary@school.za,1990-07-05`;
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentRole === 'Learner' ? 'learners-template.csv' : 'teachers-template.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // ---- Parse CSV on file selection ----
+        function onCsvSelected(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const text = e.target.result;
+                    parsedCsvRows = parseCsv(text);
+
+                    if (parsedCsvRows.length === 0) {
+                        alert('The CSV file has no valid rows.');
+                        return;
+                    }
+
+                    // Show preview
+                    const previewList = document.getElementById('csvPreviewList');
+                    let html = '';
+                    parsedCsvRows.slice(0, 10).forEach(row => {
+                        html += `<div>• ${escapeHtml(row.full_name || '?')} — ${escapeHtml(row.email || '?')}</div>`;
+                    });
+                    if (parsedCsvRows.length > 10) {
+                        html += `<div style="color:#666; margin-top:8px;">... and ${parsedCsvRows.length - 10} more</div>`;
+                    }
+
+                    previewList.innerHTML = html;
+                    document.getElementById('csvCount').textContent = parsedCsvRows.length;
+                    document.getElementById('csvPreview').style.display = 'block';
+                    document.getElementById('csvSaveBtn').disabled = false;
+
+                } catch (err) {
+                    console.error(err);
+                    alert('Could not parse the CSV file. Make sure it follows the template.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ---- Simple CSV parser ----
+        // Handles quoted values with commas inside.
+        function parseCsv(text) {
+            const lines = text.trim().split(/\r?\n/);
+            if (lines.length < 2) return [];
+
+            // Parse header
+            const headers = parseCsvLine(lines[0]).map(h => h.trim().toLowerCase());
+
+            const rows = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const values = parseCsvLine(line);
+                const row = {};
+                headers.forEach((h, idx) => {
+                    row[h] = (values[idx] || '').trim();
+                });
+
+                // Ensure the required fields exist
+                if (row.full_name && row.email && row.date_of_birth) {
+                    row.role = currentRole;
+                    rows.push(row);
+                }
+            }
+
+            return rows;
+        }
+
+        // Handles a single CSV line, respecting quoted fields
+        function parseCsvLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+
+                if (char === '"') {
+                    if (inQuotes && line[i + 1] === '"') {
+                        // Escaped quote
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+
+            result.push(current);
+            return result;
+        }
+
+        // ---- Submit the CSV to the server ----
+        async function submitCsv() {
+            if (parsedCsvRows.length === 0) {
+                alert('No rows to upload.');
+                return;
+            }
+
+            if (!confirm(`Upload ${parsedCsvRows.length} user(s)?`)) {
+                return;
+            }
+
+            const saveBtn = document.getElementById('csvSaveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Uploading...';
+
+            try {
+                const r = await fetch('/admin/upload-pending-users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+                    },
+                    body: JSON.stringify({ users: parsedCsvRows })
+                });
+                const data = await r.json();
+
+                if (data.success) {
+                    let message = `✅ ${data.added} added`;
+                    if (data.skipped > 0) message += `, ${data.skipped} skipped (duplicates)`;
+                    if (data.errors.length > 0) message += `, ${data.errors.length} errors`;
+
+                    closeCsvModal();
+                    showMessage(message, data.errors.length > 0 ? 'error' : 'success');
+                    reload();
+
+                    // Log errors to console for debugging
+                    if (data.errors.length > 0) {
+                        console.warn("Upload errors:", data.errors);
+                    }
+                } else {
+                    showMessage('❌ ' + data.message, 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showMessage('❌ Could not upload. Check the server.', 'error');
+            }
+
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Upload';
+        }
+
+        // ============ EDIT USER ============
+        let editRole = 'Learner';
+
+        async function openEditModal(pendingId) {
+            try {
+                // Fetch the single row from the list we already have
+                const r = await fetch(`/admin/pending-users?role=${currentRole}&activated=true`, {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('authToken') }
+                });
+                const data = await r.json();
+
+                // Also fetch pending ones
+                const r2 = await fetch(`/admin/pending-users?role=${currentRole}&activated=false`, {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('authToken') }
+                });
+                const data2 = await r2.json();
+
+                // Combine and find the target
+                const allUsers = [...(data.users || []), ...(data2.users || [])];
+                const user = allUsers.find(u => u.pending_id === pendingId);
+
+                if (!user) {
+                    alert('User not found.');
+                    return;
+                }
+
+                editRole = user.role;
+
+                // Fill the form
+                document.getElementById('editPendingId').value = user.pending_id;
+                document.getElementById('editFullName').value = user.full_name || '';
+                document.getElementById('editEmail').value = user.email || '';
+                document.getElementById('editDob').value = user.date_of_birth ?
+                    new Date(user.date_of_birth).toISOString().slice(0, 10) : '';
+                document.getElementById('editGender').value = user.gender || '';
+                document.getElementById('editGrade').value = user.grade_level || '';
+                document.getElementById('editStream').value = user.stream || '';
+
+                document.getElementById('editModalTitle').textContent =
+                    user.role === 'Learner' ? '✏️ Edit Learner' : '✏️ Edit Teacher';
+
+                document.getElementById('editLearnerFields').classList.toggle('hidden', user.role !== 'Learner');
+
+                onEditGradeChange();
+
+                document.getElementById('editModal').classList.add('active');
+                setTimeout(() => document.getElementById('editFullName').focus(), 100);
+
+            } catch (err) {
+                console.error(err);
+                alert('Could not open editor. Please try again.');
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        function onEditGradeChange() {
+            const grade = document.getElementById('editGrade').value;
+            const streamField = document.getElementById('editStreamField');
+            if (grade === 'Grade 10' || grade === 'Grade 11' || grade === 'Grade 12') {
+                streamField.classList.remove('hidden');
+            } else {
+                streamField.classList.add('hidden');
+            }
+        }
+
+        async function submitEdit() {
+            const pendingId = document.getElementById('editPendingId').value;
+            const full_name = document.getElementById('editFullName').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
+            const date_of_birth = document.getElementById('editDob').value;
+            const gender = document.getElementById('editGender').value;
+            const grade_level = document.getElementById('editGrade').value;
+            const stream = document.getElementById('editStream').value;
+
+            if (!full_name || !email || !date_of_birth) {
+                alert('Please fill in Name, Email, and Date of Birth.');
+                return;
+            }
+
+            const saveBtn = document.getElementById('editSaveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                const body = {
+                    full_name,
+                    email,
+                    date_of_birth,
+                    gender: editRole === 'Learner' ? gender : null,
+                    grade_level: editRole === 'Learner' ? grade_level : null,
+                    stream: editRole === 'Learner' ? stream : null
+                };
+
+                const r = await fetch('/admin/pending-user/' + pendingId, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await r.json();
+
+                if (data.success) {
+                    closeEditModal();
+                    showMessage('✅ ' + data.message, 'success');
+                    reload();
+                } else {
+                    showMessage('❌ ' + data.message, 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showMessage('❌ Could not save. Check the server.', 'error');
+            }
+
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Changes';
+        }
+
+        // ============ DELETE USER ============
+        async function deleteUser(pendingId, fullName) {
+            if (!confirm(`Delete ${fullName} from the pending list?\n\nThis cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                const r = await fetch('/admin/pending-user/' + pendingId, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('authToken') }
+                });
+                const data = await r.json();
+
+                if (data.success) {
+                    showMessage('✅ ' + data.message, 'success');
+                    reload();
+                } else {
+                    showMessage('❌ ' + data.message, 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showMessage('❌ Could not delete. Check the server.', 'error');
+            }
+        }
+
+        // ============ NAV ============
+        function goBack() {
+            window.location.href = 'admin.html';
+        }
+
+        // ============ BOOT ============
+        document.addEventListener('DOMContentLoaded', () => {
+            reload();
+
+            // Close modals when clicking outside
+            document.getElementById('addModal').addEventListener('click', (e) => {
+                if (e.target.id === 'addModal') closeAddModal();
+            });
+            document.getElementById('csvModal').addEventListener('click', (e) => {
+                if (e.target.id === 'csvModal') closeCsvModal();
+            });
+
+            // Close modal on Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeAddModal();
+                    closeEditModal();
+                    closeCsvModal();
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>
