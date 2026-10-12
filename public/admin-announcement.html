@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Send SMS Announcement</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <style>
+        .sms-preview {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border-left: 4px solid #2ecc71;
+        }
+        .sms-preview .label {
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .sms-preview .message {
+            color: rgb(234, 226, 226);
+            font-size: 16px;
+            margin-top: 5px;
+        }
+        .sms-preview .recipients {
+            color: #06d3f7;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .count-badge {
+            display: inline-block;
+            background: #06d3f7;
+            color: #1a1a2e;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .parent-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .parent-list .parent-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 14px;
+        }
+        .parent-list .parent-item:last-child {
+            border-bottom: none;
+        }
+        .parent-list .parent-name {
+            color: white;
+        }
+        .parent-list .parent-phone {
+            color: #888;
+        }
+        .status-success {
+            color: #2ecc71;
+        }
+        .status-error {
+            color: #e74c3c;
+        }
+        #messageBox {
+            display: none;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        #messageBox.success {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+        }
+        #messageBox.error {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+        #messageBox.info {
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid #3498db;
+            color: #3498db;
+        }
+    </style>
+</head>
+
+<body class="admin-bg">
+
+<h1 class="main-title">Send SMS Announcement</h1>
+
+<div class="card">
+    <h2>Send SMS to Parents</h2>
+
+    <div id="messageBox"></div>
+
+    <input id="announcementTitle" placeholder="Announcement Title" style="margin-bottom: 10px;">
+    <textarea id="announcementMessage" placeholder="Type your announcement message here..." rows="5" style="resize: vertical;"></textarea>
+
+    <select id="smsGrade" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 20px; border: none; background: rgb(231, 226, 226); color: rgb(9, 8, 8);">
+        <option value="All Grades">All Grades</option>
+        <option value="Grade 8">Grade 8</option>
+        <option value="Grade 9">Grade 9</option>
+        <option value="Grade 10">Grade 10</option>
+        <option value="Grade 11">Grade 11</option>
+        <option value="Grade 12">Grade 12</option>
+    </select>
+
+    <button onclick="previewSms()" style="background: #3498db; width: 100%; margin-bottom: 10px;">Preview</button>
+
+    <div id="previewArea" style="display: none;">
+        <div class="sms-preview">
+            <div class="label">SMS Preview</div>
+            <div class="message" id="previewMessage">Your message will appear here</div>
+            <div class="recipients" id="previewRecipients">0 parents will receive this SMS</div>
+            <div class="parent-list" id="parentList"></div>
+        </div>
+        <button onclick="sendSmsAnnouncement()" style="background: #2ecc71; width: 100%;">Send SMS Now</button>
+    </div>
+
+    <button onclick="window.location.href='admin.html'" style="margin-top: 20px; width: 100%;">Back</button>
+</div>
+
+<script>
+const user = JSON.parse(localStorage.getItem("loggedInUser"));
+
+
+
+if (!user || user.role !== "admin") {
+    window.location.href = "index.html";
+}
+
+
+
+let currentRecipients = [];
+
+
+function showMessage(message, type) {
+    const box = document.getElementById("messageBox");
+    box.style.display = "block";
+    box.textContent = message;
+    box.className = type;
+    
+    setTimeout(() => {
+        box.style.display = "none";
+    }, 8000);
+}
+
+async function previewSms() {
+    const title = document.getElementById("announcementTitle").value.trim();
+    const message = document.getElementById("announcementMessage").value.trim();
+    const grade = document.getElementById("smsGrade").value;
+
+    if (!message) {
+        showMessage("Please enter a message", "error");
+        return;
+    }
+
+    try {
+        const response = await fetch("/admin/preview-sms", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message, grade })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            currentRecipients = data.recipients || [];
+            
+            document.getElementById("previewMessage").textContent = message;
+            document.getElementById("previewRecipients").textContent = data.recipients_count + " parents will receive this SMS";
+            
+            const parentList = document.getElementById("parentList");
+            if (data.recipients && data.recipients.length > 0) {
+                let html = '';
+                data.recipients.forEach(parent => {
+                    html += `
+                        <div class="parent-item">
+                            <span class="parent-name">${parent.full_name}</span>
+                            <span class="parent-phone">${parent.phone_number}</span>
+                        </div>
+                    `;
+                });
+                parentList.innerHTML = html;
+            } else {
+                parentList.innerHTML = '<div style="color: #888; text-align: center; padding: 20px;">No parents found in this grade</div>';
+            }
+            
+            document.getElementById("previewArea").style.display = 'block';
+            showMessage("Found " + data.recipients_count + " parents in " + grade, "success");
+        } else {
+            showMessage(data.message, "error");
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        showMessage("Failed to preview SMS", "error");
+    }
+}
+
+          
+async function sendSmsAnnouncement() {
+    const title = document.getElementById("announcementTitle").value.trim() || "Admin Announcement";
+    const message = document.getElementById("announcementMessage").value.trim();
+    const grade = document.getElementById("smsGrade").value;
+
+    if (!message) {
+        showMessage("Please enter a message", "error");
+        return;
+    }
+
+    if (currentRecipients.length === 0) {
+        showMessage("No parents to send SMS to", "error");
+        return;
+    }
+
+    if (!confirm("Are you sure you want to send this SMS to " + currentRecipients.length + " parents?")) {
+        return;
+    }
+
+    const admin = JSON.parse(localStorage.getItem("loggedInUser"));
+    const posted_by = admin ? admin.full_name : 'Admin';
+
+    try {
+        const response = await fetch("/add-announcement", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                title, 
+                message, 
+                grade: grade,           // ← Sends grade
+                posted_by: posted_by,   // ← Sends admin name
+                sendSms: true           // ← THIS TELLS SERVER TO SEND SMS
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showMessage("✅ Announcement saved and SMS sent to " + currentRecipients.length + " parents!", "success");
+            document.getElementById("announcementTitle").value = "";
+            document.getElementById("announcementMessage").value = "";
+            document.getElementById("previewArea").style.display = 'none';
+            currentRecipients = [];
+        } else {
+            showMessage("❌ " + data.message, "error");
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        showMessage("❌ Failed to send SMS", "error");
+    }
+}
+</script>
+
+</body>
+</html>
