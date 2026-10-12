@@ -1,168 +1,507 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Upload Student Marks</title>
     <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <style>
+        .class-info-box {
+            background: rgba(6, 211, 247, 0.1);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #06d3f7;
+        }
+
+        .class-info-box .subject {
+            color: #06d3f7;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .class-info-box .grade {
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .class-info-box .count {
+            color: #aaa;
+            float: right;
+        }
+
+        .class-info-box .count span {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        .student-row {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-left: 3px solid #06d3f7;
+        }
+
+        .student-row:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .student-row .name {
+            color: white;
+            font-weight: bold;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .student-row .email {
+            color: #888;
+            font-size: 13px;
+            min-width: 150px;
+        }
+
+        .student-row input[type="number"] {
+            width: 80px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .student-row input[type="number"]:focus {
+            outline: 2px solid #06d3f7;
+        }
+
+        .student-row input[type="number"]::placeholder {
+            color: #666;
+        }
+
+        .student-row .score-display {
+            min-width: 50px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            color: #aaa;
+        }
+
+        .score-high {
+            color: #2ecc71;
+        }
+
+        .score-medium {
+            color: #f39c12;
+        }
+
+        .score-low {
+            color: #e74c3c;
+        }
+
+        .term-selector {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin: 15px 0 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .term-selector label {
+            color: #aaa;
+            font-weight: bold;
+        }
+
+        .term-selector select {
+            padding: 10px 18px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+            min-width: 180px;
+        }
+
+        .term-selector select option {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        .term-selector input[type="text"] {
+            padding: 10px 18px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+            min-width: 220px;
+        }
+
+        .term-selector input[type="text"]::placeholder {
+            color: #888;
+        }
+
+        .no-class-msg {
+            text-align: center;
+            padding: 30px;
+            color: #f39c12;
+        }
+
+        .no-class-msg .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .save-all-btn {
+            background: #2ecc71;
+            width: 100%;
+            padding: 14px;
+            border-radius: 25px;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .save-all-btn:hover {
+            background: #27ae60;
+            transform: scale(1.02);
+        }
+
+        .success-msg {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+            padding: 12px 15px;
+            border-radius: 8px;
+            display: none;
+            margin-bottom: 15px;
+        }
+
+        .error-msg {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            padding: 12px 15px;
+            border-radius: 8px;
+            display: none;
+            margin-bottom: 15px;
+        }
+
+        .back-btn {
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+        }
+
+        .student-count {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 
 <body class="teacher-bg">
 
-<h1 class="main-title">📊 Upload Student Marks</h1>
+    <h1 class="main-title">📊 Upload Student Marks</h1>
 
-<div class="card">
-    <h2>Add Marks for Student</h2>
+    <div class="card">
+        <h2>Add Marks for Students</h2>
 
-    <input id="student_email" type="email" placeholder="Student Email" required>
-    
-    <select id="subject">
-        <option value="Mathematics">📐 Mathematics</option>
-        <option value="English">📖 English</option>
-        <option value="Science">🔬 Science</option>
-        <option value="History">📜 History</option>
-        <option value="Geography">🌍 Geography</option>
-        <option value="Art">🎨 Art</option>
-        <option value="Music">🎵 Music</option>
-        <option value="Physical Education">🏃 Physical Education</option>
-        <option value="Computer Science">💻 Computer Science</option>
-        <option value="Other">📚 Other</option>
-    </select>
+        <!-- Class Info -->
+        <div id="classInfo" class="class-info-box" style="display: none;">
+            <span class="subject" id="classSubject">Mathematics</span>
+            <span class="grade" id="classGrade">Grade 10</span>
+            <span class="count">👨‍🎓 Students: <span id="studentCount">0</span></span>
+        </div>
 
-    <input id="score" type="number" placeholder="Score (0-100)" min="0" max="100" required>
-    
-    <select id="term">
-        <option value="Term 1">📘 Term 1</option>
-        <option value="Term 2">📗 Term 2</option>
-        <option value="Term 3">📕 Term 3</option>
-        <option value="Final Exam">📝 Final Exam</option>
-    </select>
+        <!-- No Class Message -->
+        <div id="noClassMsg" class="no-class-msg" style="display: none;">
+            <span class="icon">📚</span>
+            <p>Please select a class from the dashboard first.</p>
+            <p style="color: #666; font-size: 13px;">Go back to the dashboard and choose a class.</p>
+        </div>
 
-    <!-- Grade Selection -->
-    <select id="markGrade" style="width:100%; padding:12px; margin:10px 0; border-radius:20px; border:none;">
-        <option value="All Grades">📚 All Grades</option>
-        <option value="Grade 8">Grade 8</option>
-        <option value="Grade 9">Grade 9</option>
-        <option value="Grade 10">Grade 10</option>
-        <option value="Grade 11">Grade 11</option>
-        <option value="Grade 12">Grade 12</option>
-    </select>
+        <!-- Term Selector -->
+        <div class="term-selector" id="termSelector" style="display: none;">
+            <label>📘 Select Term:</label>
+            <select id="termSelect">
+                <option value="Term 1">📘 Term 1</option>
+                <option value="Term 2">📗 Term 2</option>
+                <option value="Term 3">📕 Term 3</option>
+                <option value="Term 4">📙 Term 4</option>
+            </select>
 
-    <button onclick="addMark()" style="background: #2ecc71; width: 100%;">✅ Save Mark</button>
-    
-    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-    
-    <h3>📋 Recently Added Marks</h3>
-    <div id="recentMarks" style="text-align: left; max-height: 300px; overflow-y: auto;">
-        <p style="color: #aaa; text-align: center;">No marks added yet in this session.</p>
+            <label>📝 Assessment Type:</label>
+            <select id="assessmentTypeSelect">
+                <option value="class_test">Class Test</option>
+                <option value="assignment">Assignment</option>
+                <option value="practical">Practical</option>
+                <option value="term_exam">Term Exam (June / Prelims)</option>
+                <option value="final_exam">Final Exam</option>
+            </select>
+
+            <label>🏷️ Title:</label>
+            <input type="text" id="assessmentTitleInput" placeholder="e.g. Test 1 — Trigonometry" maxlength="200">
+        </div>
+
+        <!-- Students List -->
+        <div id="studentsContainer" style="display: none;">
+            <div class="student-count" id="studentCountDisplay">👨‍🎓 Loading students...</div>
+            <div id="studentsList"></div>
+
+            <button class="save-all-btn" onclick="saveAllMarks()">💾 Save All Marks</button>
+        </div>
+
+        <div id="successMsg" class="success-msg">✅ Marks saved successfully!</div>
+        <div id="errorMsg" class="error-msg">❌ <span id="errorText"></span></div>
+
+        <button onclick="goBackToDashboard()" style="margin-top: 20px; width: 100%; padding: 12px;">← Back to
+            Dashboard</button>
     </div>
 
-    <button onclick="window.location.href='teacher.html'" style="margin-top: 10px;">← Back to Dashboard</button>
-</div>
+    <script>
+        const user = JSON.parse(localStorage.getItem("loggedInUser"));
 
-<script>
-let recentMarks = [];
+        if (!user || user.role !== "teacher") {
+            window.location.href = "Login.html";
+        }
 
-async function addMark() {
-    const student_email = document.getElementById("student_email").value.trim();
-    const subject = document.getElementById("subject").value;
-    const score = document.getElementById("score").value;
-    const term = document.getElementById("term").value;
-    const grade_level = document.getElementById("markGrade").value;
+        // Get the selected class from localStorage
+        const teacherClass = JSON.parse(localStorage.getItem('teacherClass'));
 
-    if (!student_email) {
-        alert("❌ Please enter a student email");
-        return;
-    }
-
-    if (!isValidEmail(student_email)) {
-        alert("❌ Please enter a valid email address");
-        return;
-    }
-
-    if (!score || score < 0 || score > 100) {
-        alert("❌ Please enter a valid score between 0 and 100");
-        return;
-    }
-
-    try {
-        const response = await fetch("/add-mark", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ student_email, subject, score, term, grade_level })
-        });
-
-        const data = await response.json();
-        
-        if (data.success) {
-            alert("✅ Mark saved successfully!");
-            
-            recentMarks.unshift({
-                student_email,
-                subject,
-                score,
-                term,
-                grade_level,
-                time: new Date().toLocaleString()
-            });
-            
-            updateRecentMarks();
-            
-            document.getElementById("student_email").value = "";
-            document.getElementById("score").value = "";
-            document.getElementById("markGrade").value = "All Grades";
+        if (!teacherClass) {
+            document.getElementById('noClassMsg').style.display = 'block';
+            document.getElementById('classInfo').style.display = 'none';
+            document.getElementById('studentsContainer').style.display = 'none';
+            document.getElementById('termSelector').style.display = 'none';
         } else {
-            alert("❌ " + data.message);
+            document.getElementById('noClassMsg').style.display = 'none';
+            document.getElementById('classInfo').style.display = 'block';
+            document.getElementById('termSelector').style.display = 'flex';
+            document.getElementById('studentsContainer').style.display = 'block';
+
+            document.getElementById('classSubject').textContent = teacherClass.subject;
+            document.getElementById('classGrade').textContent = teacherClass.grade;
+
+            loadStudents();
         }
-    } catch (error) {
-        console.error("Error:", error);
-        alert("❌ Server error. Please try again.");
-    }
-}
 
-function isValidEmail(email) {
-    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return pattern.test(email);
-}
+        // ============================================
+        // ===== LOAD STUDENTS =====
+        // ============================================
+        async function loadStudents() {
+            const list = document.getElementById('studentsList');
+            const countDisplay = document.getElementById('studentCountDisplay');
+            list.innerHTML = '<p style="color: #aaa; text-align: center;">📊 Loading students...</p>';
 
-function updateRecentMarks() {
-    const container = document.getElementById("recentMarks");
-    
-    if (recentMarks.length === 0) {
-        container.innerHTML = '<p style="color: #aaa; text-align: center;">No marks added yet in this session.</p>';
-        return;
-    }
-    
-    let html = '';
-    recentMarks.slice(0, 10).forEach((mark, index) => {
-        const scoreColor = mark.score >= 70 ? '#2ecc71' : mark.score >= 50 ? '#f39c12' : '#e74c3c';
-        html += `
-            <div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid ${scoreColor};">
-                <div>
-                    <strong style="color: #06d3f7;">${mark.subject}</strong>
-                    <span style="color: #ccc;">→</span>
-                    <span style="color: white;">${mark.student_email}</span>
-                    <br>
-                    <small style="color: #888;">${mark.term} • ${mark.grade_level || 'All Grades'} • ${mark.time}</small>
+            try {
+                const response = await fetch(`/class-students?subject=${encodeURIComponent(teacherClass.subject)}&grade=${encodeURIComponent(teacherClass.grade)}`);
+                const data = await response.json();
+
+                if (!data.success || data.students.length === 0) {
+                    list.innerHTML = '<p style="color: #aaa; text-align: center;">No students found in this class.</p>';
+                    document.getElementById('studentCount').textContent = '0';
+                    countDisplay.textContent = '👨‍🎓 No students found';
+                    return;
+                }
+
+                const students = data.students.sort((a, b) => a.full_name.localeCompare(b.full_name));
+                document.getElementById('studentCount').textContent = students.length;
+                countDisplay.textContent = `👨‍🎓 ${students.length} students found`;
+
+                let html = '';
+                students.forEach((student) => {
+                    html += `
+                <div class="student-row"  data-name="${student.full_name}" data-stream="${student.stream || ''}">
+                    <span class="name">${student.full_name}</span>
+                    <span class="email">📧 ${student.email}</span>
+                    <input type="number" id="score_${student.email}" placeholder="0-100" min="0" max="100" oninput="updateScoreDisplay('${student.email}')">
+                    <span class="score-display" id="display_${student.email}">-</span>
                 </div>
-                <div style="font-size: 24px; font-weight: bold; color: ${scoreColor};">
-                    ${mark.score}%
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-}
+            `;
+                });
 
-document.addEventListener("keypress", function(e) {
-    if (e.key === "Enter") {
-        const activeElement = document.activeElement;
-        if (activeElement.id === "student_email" || 
-            activeElement.id === "score") {
-            addMark();
+                list.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading students:', error);
+                list.innerHTML = '<p style="color: #e74c3c; text-align: center;">❌ Error loading students</p>';
+            }
         }
-    }
-});
-</script>
+
+        // ============================================
+        // ===== UPDATE SCORE DISPLAY =====
+        // ============================================
+        function updateScoreDisplay(email) {
+            const input = document.getElementById('score_' + email);
+            const display = document.getElementById('display_' + email);
+            const score = parseFloat(input.value);
+
+            if (isNaN(score) || score === '') {
+                display.textContent = '-';
+                display.className = 'score-display';
+                return;
+            }
+
+            display.textContent = score + '%';
+
+            if (score >= 70) {
+                display.className = 'score-display score-high';
+            } else if (score >= 50) {
+                display.className = 'score-display score-medium';
+            } else {
+                display.className = 'score-display score-low';
+            }
+        }
+
+        // ============================================
+        // ===== SAVE ALL MARKS =====
+        // ============================================
+        async function saveAllMarks() {
+            const term = document.getElementById('termSelect').value;
+            const assessment_type = document.getElementById('assessmentTypeSelect').value;
+            const assessment_title = document.getElementById('assessmentTitleInput').value.trim();
+            const subject = teacherClass.subject;
+            const grade = teacherClass.grade;
+
+            if (!assessment_type) {
+                alert('❌ Please select an assessment type');
+                return;
+            }
+
+            if (!assessment_title) {
+                alert('❌ Please enter a title for this assessment (e.g. "Test 1 — Trigonometry")');
+                return;
+            }
+
+            const inputs = document.querySelectorAll('#studentsList input[type="number"]');
+            let marksToSave = [];
+            let hasError = false;
+
+            inputs.forEach(input => {
+                const email = input.id.replace('score_', '');
+                const score = parseFloat(input.value);
+
+                if (!isNaN(score) && input.value.trim() !== '') {
+                    if (score < 0 || score > 100) {
+                        alert(`❌ Score for ${email} must be between 0 and 100`);
+                        hasError = true;
+                        return;
+                    }
+                    marksToSave.push({
+                        student_email: email,
+                        learner_name: input.closest('.student-row').dataset.name,
+                        subject: subject,
+                        score: score,
+                        term: term,
+                        assessment_type: assessment_type,
+                        assessment_title: assessment_title,
+                        grade_level: grade,
+                        stream: input.closest('.student-row').dataset.stream,
+                        uploaded_by: user.full_name
+                    });
+                }
+            });
+
+            if (hasError) return;
+
+            if (marksToSave.length === 0) {
+                alert('❌ Please enter at least one mark');
+                return;
+            }
+
+            const typeLabel = {
+                class_test: 'Class Test',
+                assignment: 'Assignment',
+                practical: 'Practical',
+                term_exam: 'Term Exam',
+                final_exam: 'Final Exam'
+            }[assessment_type] || assessment_type;
+
+            if (!confirm(`Save ${marksToSave.length} ${typeLabel} marks for ${subject} (${grade})?\n\nTerm: ${term}\nTitle: ${assessment_title}`)) {
+                return;
+            }
+
+            // Disable button during save
+            const saveBtn = document.querySelector('.save-all-btn');
+            const originalText = saveBtn.textContent;
+            saveBtn.disabled = true;
+            saveBtn.textContent = '⏳ Saving...';
+            saveBtn.style.opacity = '0.7';
+
+            try {
+                let saved = 0;
+                let failed = 0;
+
+                for (const mark of marksToSave) {
+                    const response = await fetch('/add-mark', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(mark)
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        saved++;
+                    } else {
+                        failed++;
+                        console.warn('Failed to save mark:', mark, data.message);
+                    }
+                }
+
+                if (failed === 0) {
+                    document.getElementById('successMsg').textContent = `✅ Saved ${saved} ${typeLabel} marks`;
+                    document.getElementById('successMsg').style.display = 'block';
+                    document.getElementById('errorMsg').style.display = 'none';
+                    document.querySelectorAll('#studentsList input[type="number"]').forEach(input => {
+                        input.value = '';
+                        const email = input.id.replace('score_', '');
+                        document.getElementById('display_' + email).textContent = '-';
+                        document.getElementById('display_' + email).className = 'score-display';
+                    });
+                    document.getElementById('assessmentTitleInput').value = '';
+                    setTimeout(() => {
+                        document.getElementById('successMsg').style.display = 'none';
+                    }, 5000);
+                } else {
+                    document.getElementById('errorText').textContent = `Saved ${saved}, failed ${failed}`;
+                    document.getElementById('errorMsg').style.display = 'block';
+                    document.getElementById('successMsg').style.display = 'none';
+                }
+
+            } catch (error) {
+                console.error('Error saving marks:', error);
+                document.getElementById('errorText').textContent = 'Server error. Please try again.';
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('successMsg').style.display = 'none';
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+                saveBtn.style.opacity = '1';
+            }
+        }
+
+        // ============================================
+        // ===== GO BACK TO DASHBOARD =====
+        // ============================================
+        function goBackToDashboard() {
+            localStorage.setItem('returningFromPage', 'true');
+            window.location.href = 'teacher.html';
+        }
+
+    </script>
 
 </body>
+
 </html>
