@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Take Attendance</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <style>
+        .filter-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-container label {
+            color: #aaa;
+            font-weight: bold;
+        }
+        .filter-container input, .filter-container select {
+            padding: 12px 20px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+        }
+        .filter-container select option {
+            background: #1a1a2e;
+            color: white;
+        }
+        .filter-container button {
+            padding: 12px 30px;
+            border-radius: 20px;
+            border: none;
+            background: #06d3f7;      /* brand cyan */
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .filter-container button:hover {
+            background: #04b6d4;
+        }
+
+        /* ===== Collapsed summary bar (shown after Load) ===== */
+        .filter-summary {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+            padding: 14px 20px;
+            background: rgba(6, 211, 247, 0.08);
+            border: 1px solid rgba(6, 211, 247, 0.3);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            color: white;
+            font-size: 14px;
+        }
+        .filter-summary span {
+            color: #ddd;
+        }
+        .filter-summary span strong {
+            color: #06d3f7;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+        .change-btn {
+            margin-left: auto;
+            padding: 8px 16px;
+            border-radius: 15px;
+            border: 1px solid #06d3f7;
+            background: transparent;
+            color: #06d3f7;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .change-btn:hover {
+            background: #06d3f7;
+            color: white;
+        }
+
+        .student-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .student-row .name {
+            color: white;
+            font-weight: bold;
+            flex: 1;
+            min-width: 150px;
+        }
+        .student-row .email {
+            color: #888;
+            font-size: 13px;
+            min-width: 180px;
+        }
+        .student-row label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #e74c3c;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .student-row input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 25px;
+            border: none;
+            background: #2ecc71;      /* green = commit/save */
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .save-btn:hover {
+            background: #27ae60;
+        }
+
+        .message-box {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .message-box.success {
+            display: block;
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+        }
+        .message-box.error {
+            display: block;
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+        .message-box.warning {
+            display: block;
+            background: rgba(243, 156, 18, 0.2);
+            border: 1px solid #f39c12;
+            color: #f39c12;
+        }
+
+        .back-btn {
+            margin-top: 20px;
+            width: auto;
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #aaa;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .back-btn:hover {
+            border-color: #06d3f7;
+            color: #06d3f7;
+        }
+
+        #studentList {
+            max-height: 45vh;
+            min-height: 120px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        #studentList::-webkit-scrollbar {
+            width: 8px;
+        }
+        #studentList::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        #studentList::-webkit-scrollbar-thumb {
+            background: #06d3f7;
+            border-radius: 10px;
+        }
+        #studentList::-webkit-scrollbar-thumb:hover {
+            background: #04b6d4;
+        }
+
+        .hint {
+            color: #aaa;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        .count-badge {
+            display: inline-block;
+            padding: 5px 14px;
+            background: rgba(6, 211, 247, 0.15);
+            border: 1px solid #06d3f7;
+            color: #06d3f7;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+
+<body class="admin-bg">
+
+<h1 class="main-title">📅 Take Attendance</h1>
+
+<div class="card">
+    <h2>Mark Absent Learners Only</h2>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <!-- ===== Full filter row (visible until Load) ===== -->
+    <div class="filter-container" id="filterRow">
+        <label>📅 Date:</label>
+        <input type="date" id="attendanceDate">
+
+        <label>📚 Grade:</label>
+        <select id="attendanceGrade">
+            <option value="">-- Select Grade --</option>
+            <option value="Grade 8">Grade 8</option>
+            <option value="Grade 9">Grade 9</option>
+            <option value="Grade 10">Grade 10</option>
+            <option value="Grade 11">Grade 11</option>
+            <option value="Grade 12">Grade 12</option>
+        </select>
+
+        <button onclick="loadLearners()">📋 Load Learners</button>
+    </div>
+
+    <!-- ===== Collapsed summary (shown after Load) ===== -->
+    <div class="filter-summary" id="filterSummary" style="display: none;">
+        <span>📅 <strong id="summaryDate"></strong></span>
+        <span>📚 <strong id="summaryGrade"></strong></span>
+        <button class="change-btn" onclick="editFilters()">✏️ Change</button>
+    </div>
+
+    <div class="hint" id="hint" style="display: none;">
+        ☑️ Check the box next to learners who are <strong>ABSENT</strong>.
+        All others will be marked <strong>Present</strong>.
+    </div>
+
+    <div id="studentList"></div>
+
+    <button class="save-btn" id="saveBtn" onclick="saveAttendance()" style="display: none;">
+        💾 Save Attendance
+    </button>
+
+    <button onclick="window.location.href='admin.html'" class="back-btn">← Back to Dashboard</button>
+</div>
+
+<script>
+const admin = JSON.parse(localStorage.getItem("loggedInUser"));
+
+if (!admin || admin.role !== "admin") {
+    window.location.href = "Login.html";
+}
+
+let currentLearners = [];
+
+// Set today's date
+document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
+
+function showMessage(message, type) {
+    const box = document.getElementById('messageBox');
+    box.textContent = message;
+    box.className = 'message-box ' + type;
+    box.style.display = 'block';
+    setTimeout(() => { box.style.display = 'none'; }, 5000);
+}
+
+// ===== Filter collapse helpers =====
+function collapseFilters() {
+    const date = document.getElementById('attendanceDate').value;
+    const grade = document.getElementById('attendanceGrade').value;
+
+    document.getElementById('summaryDate').textContent = date;
+    document.getElementById('summaryGrade').textContent = grade;
+
+    document.getElementById('filterRow').style.display = 'none';
+    document.getElementById('filterSummary').style.display = 'flex';
+}
+
+function editFilters() {
+    document.getElementById('filterRow').style.display = 'flex';
+    document.getElementById('filterSummary').style.display = 'none';
+}
+
+// ============================================
+// ===== LOAD LEARNERS =====
+// ============================================
+async function loadLearners() {
+    const date = document.getElementById('attendanceDate').value;
+    const grade = document.getElementById('attendanceGrade').value;
+
+    if (!date || !grade) {
+        showMessage('Please select both a date and a grade', 'error');
+        return;
+    }
+
+    const list = document.getElementById('studentList');
+    list.innerHTML = '<p style="color: #aaa; text-align: center;">📊 Loading learners...</p>';
+
+    try {
+        // Load learners
+        const learnersResponse = await fetch(`/admin/learners-by-grade/${encodeURIComponent(grade)}`);
+        const learnersData = await learnersResponse.json();
+
+        if (!learnersData.success || learnersData.learners.length === 0) {
+            list.innerHTML = '<p style="color: #aaa; text-align: center;">No learners found in this grade.</p>';
+            document.getElementById('saveBtn').style.display = 'none';
+            return;
+        }
+
+        currentLearners = learnersData.learners;
+
+        // Check if attendance already exists
+        const checkResponse = await fetch(`/admin/check-attendance?date=${date}&grade=${encodeURIComponent(grade)}`);
+        const checkData = await checkResponse.json();
+
+        let existingRecords = {};
+        if (checkData.exists) {
+            checkData.records.forEach(r => {
+                existingRecords[r.student_email] = r.status;
+            });
+            showMessage('⚠️ Attendance already recorded for this date. You can update it.', 'warning');
+        }
+
+        // Render learners
+        let html = `<div class="count-badge">👨‍🎓 ${currentLearners.length} learners found</div>`;
+
+        currentLearners.forEach(learner => {
+            const isAbsent = existingRecords[learner.email] === 'Absent';
+            const checked = isAbsent ? 'checked' : '';
+
+            html += `
+                <div class="student-row">
+                    <div>
+                        <div class="name">${learner.full_name}</div>
+                        <div class="email">📧 ${learner.email}</div>
+                    </div>
+                    <label>
+                        <input type="checkbox" id="absent_${learner.email}" ${checked}>
+                        ❌ Absent
+                    </label>
+                </div>
+            `;
+        });
+
+        list.innerHTML = html;
+        document.getElementById('hint').style.display = 'block';
+        document.getElementById('saveBtn').style.display = 'block';
+
+        // ===== Collapse the filter row after successful load =====
+        collapseFilters();
+
+    } catch (error) {
+        console.error('Error loading Learners:', error);
+        list.innerHTML = `<p style="color: #e74c3c; text-align: center;">❌ Error: ${error.message}</p>`;
+    }
+}
+
+// ============================================
+// ===== SAVE ATTENDANCE =====
+// ============================================
+async function saveAttendance() {
+    const date = document.getElementById('attendanceDate').value;
+    const grade = document.getElementById('attendanceGrade').value;
+
+    if (!date || !grade) {
+        showMessage('Please select both a date and a grade', 'error');
+        return;
+    }
+
+    // Collect absent emails
+    const absentEmails = [];
+    currentLearners.forEach(learner => {
+        const checkbox = document.getElementById(`absent_${learner.email}`);
+        if (checkbox && checkbox.checked) {
+            absentEmails.push(learner.email);
+        }
+    });
+
+    if (!confirm(`Save attendance?\n\nPresent: ${currentLearners.length - absentEmails.length}\nAbsent: ${absentEmails.length}`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/admin/save-attendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                date: date,
+                grade: grade,
+                absent_emails: absentEmails,
+                all_learners: currentLearners,
+                admin_name: admin.full_name
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showMessage('✅ ' + data.message, 'success');
+        } else {
+            showMessage('❌ ' + data.message, 'error');
+        }
+
+    } catch (error) {
+        console.error('Error saving attendance:', error);
+        showMessage('❌ Error saving attendance', 'error');
+    }
+}
+</script>
+
+</body>
+</html>
