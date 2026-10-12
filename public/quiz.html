@@ -1,0 +1,874 @@
+     <!DOCTYPE html>
+<html>
+<head>
+    <title>🧠 AI Quiz</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <style>
+        .quiz-wrap {
+            max-width: 820px;
+            margin: 20px auto;
+            background: rgba(0,0,0,0.75);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .quiz-header h2 {
+            color: #06d3f7;
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: none;
+            color: #06d3f7;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* ---- Setup screen ---- */
+        .setup-box {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .setup-box h3 {
+            color: white;
+            margin-bottom: 6px;
+            font-size: 20px;
+        }
+
+        .setup-box > p {
+            color: #aaa;
+            margin-bottom: 22px;
+            font-size: 14px;
+        }
+
+        /* ---- Big upload zone ---- */
+        .upload-zone {
+            display: block;
+            width: 100%;
+            min-height: 180px;
+            padding: 30px 20px;
+            border: 3px dashed rgba(6, 211, 247, 0.5);
+            border-radius: 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: rgba(6, 211, 247, 0.04);
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .upload-zone:hover {
+            border-color: #06d3f7;
+            background: rgba(6, 211, 247, 0.1);
+            transform: scale(1.01);
+        }
+
+        .upload-zone.has-file {
+            border-color: #2ecc71;
+            border-style: solid;
+            background: rgba(46, 204, 113, 0.1);
+        }
+
+        .upload-zone .big-icon {
+            font-size: 56px;
+            display: block;
+            margin-bottom: 12px;
+            line-height: 1;
+        }
+
+        .upload-zone .zone-title {
+            color: white;
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 16px;
+        }
+
+        .upload-zone .zone-hint {
+            color: #888;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .upload-zone input[type="file"] {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            border: 0 !important;
+            opacity: 0 !important;
+        }
+
+        .file-name-display {
+            color: #2ecc71;
+            font-weight: bold;
+            margin-top: 12px;
+            font-size: 14px;
+            word-break: break-word;
+            display: none;
+        }
+
+        .topic-input {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: white;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        .topic-input::placeholder { color: #666; }
+        .topic-input:focus { border-color: #06d3f7; }
+
+        .qty-picker {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .qty-btn {
+            padding: 10px 24px;
+            border-radius: 20px;
+            border: 2px solid rgba(6,211,247,0.3);
+            background: transparent;
+            color: #06d3f7;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            min-width: 60px;
+            margin: 0;
+        }
+
+        .qty-btn.active {
+            background: rgba(6,211,247,0.2);
+            border-color: #06d3f7;
+        }
+
+        .start-btn {
+            padding: 16px 45px;
+            border-radius: 30px;
+            border: none;
+            background: #2ecc71;
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 0;
+            margin: 0;
+        }
+
+        .start-btn:hover {
+            background: #27ae60;
+            transform: scale(1.03);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading */
+        .loading-box {
+            text-align: center;
+            padding: 60px 20px;
+            color: #aaa;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid #06d3f7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Question */
+        .progress-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #06d3f7, #2ecc71);
+            transition: width 0.3s ease;
+        }
+
+        .q-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        .difficulty-badge {
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .difficulty-Easy   { background: rgba(46,204,113,0.2); color: #2ecc71; }
+        .difficulty-Medium { background: rgba(243,156,18,0.2); color: #f39c12; }
+        .difficulty-Hard   { background: rgba(231,76,60,0.2);  color: #e74c3c; }
+
+        .q-text {
+            color: white;
+            font-size: 18px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .q-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .opt-btn {
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03);
+            color: white;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            margin: 0;
+            font-family: inherit;
+        }
+
+        .opt-btn:hover {
+            background: rgba(6,211,247,0.1);
+            border-color: rgba(6,211,247,0.5);
+        }
+
+        .opt-btn.selected {
+            background: rgba(6,211,247,0.2);
+            border-color: #06d3f7;
+        }
+
+        .opt-letter {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            font-size: 13px;
+        }
+
+        .opt-btn.selected .opt-letter {
+            background: #06d3f7;
+            color: #1a1a2e;
+        }
+
+        .nav-row {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+        }
+
+        .nav-btn {
+            padding: 12px 30px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            min-width: 0;
+            margin: 0;
+        }
+
+        .nav-btn.prev { background: rgba(255,255,255,0.1); color: #aaa; }
+        .nav-btn.next { background: #06d3f7; color: white; }
+        .nav-btn.submit { background: #2ecc71; color: white; }
+
+        .nav-btn:hover:not(:disabled) { transform: scale(1.03); }
+        .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* Results */
+        .result-hero {
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+        }
+
+        .result-hero.pass { background: rgba(46,204,113,0.15); border: 1px solid #2ecc71; }
+        .result-hero.medium { background: rgba(243,156,18,0.15); border: 1px solid #f39c12; }
+        .result-hero.fail { background: rgba(231,76,60,0.15); border: 1px solid #e74c3c; }
+
+        .result-score {
+            font-size: 64px;
+            font-weight: bold;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .pass .result-score { color: #2ecc71; }
+        .medium .result-score { color: #f39c12; }
+        .fail .result-score { color: #e74c3c; }
+
+        .result-text {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .result-sub {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .review-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid #888;
+        }
+
+        .review-item.correct { border-left-color: #2ecc71; }
+        .review-item.wrong   { border-left-color: #e74c3c; }
+
+        .review-q {
+            color: white;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .review-answer {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .review-answer span.given-wrong {
+            color: #e74c3c;
+            text-decoration: line-through;
+        }
+
+        .review-answer span.correct-answer {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        .review-explanation {
+            background: rgba(6,211,247,0.08);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 13px;
+            color: #ccc;
+            margin-top: 8px;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 12px 24px;
+            border-radius: 25px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            min-width: 0;
+            margin: 0;
+        }
+
+        .retake-btn { background: #f39c12; color: white; }
+        .new-quiz-btn { background: #2ecc71; color: white; }
+        .back-dash-btn { background: rgba(255,255,255,0.1); color: white; }
+
+        .action-btn:hover { transform: scale(1.05); }
+
+        .error-box {
+            background: rgba(231,76,60,0.15);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+
+        .history-source {
+            color: #888;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+
+<body class="student-bg">
+
+<div class="card" style="width: 95%; max-width: 880px; margin: 20px auto; padding: 10px; background: rgba(0,0,0,0.2);">
+    <div class="quiz-wrap">
+        <div class="quiz-header">
+            <h2>🧠 AI Quiz — <span id="subjectLabel">Subject</span></h2>
+            <button class="back-btn" onclick="goBack()">← Back</button>
+        </div>
+
+        <div id="screen"></div>
+    </div>
+</div>
+
+<script>
+// ============ AUTH ============
+const user = JSON.parse(localStorage.getItem("loggedInUser"));
+if (!user || user.role !== "Learner") {
+    window.location.href = "index.html";
+}
+
+const currentSubject = localStorage.getItem("currentSubject");
+if (!currentSubject) {
+    alert("No subject selected. Please pick a subject first.");
+    window.location.href = "learner.html";
+}
+
+document.getElementById("subjectLabel").textContent = currentSubject;
+
+const screen = document.getElementById("screen");
+
+// ============ STATE ============
+let quizData = null;
+let quizId = null;
+let currentIndex = 0;
+let userAnswers = {};
+
+let uploadedFile = null;
+let pickedQty = 5;
+
+// ============ UTILS ============
+function show(html) { screen.innerHTML = html; }
+
+function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text == null ? "" : String(text);
+    return div.innerHTML;
+}
+
+// ============ SCREEN 1: SETUP ============
+function showSetup() {
+    uploadedFile = null;
+    pickedQty = 5;
+
+    show(`
+        <div class="setup-box">
+            <h3>Test yourself 🎯</h3>
+            <p>Upload a worksheet, textbook page, PDF, or photo and I'll build a quiz from it.</p>
+
+            <label class="upload-zone" id="uploadZone" for="quizFile">
+                <span class="big-icon">📄</span>
+                <div class="zone-title">Click to choose a file</div>
+                <div class="zone-hint">PDF, photo, DOCX, PPTX, TXT (max 15 MB)</div>
+                <input type="file" id="quizFile"
+                       accept="image/*,application/pdf,.docx,.pptx,.xlsx,.txt,.csv,.md"
+                       onchange="onQuizFileSelected(event)">
+                <div class="file-name-display" id="quizFileName"></div>
+            </label>
+
+            <input type="text" class="topic-input" id="topicHint"
+                   placeholder="Optional: focus on a topic? e.g. 'Chapter 3 — Photosynthesis'">
+
+            <div style="color:#aaa; font-size:13px; margin-bottom:10px;">How many questions?</div>
+            <div class="qty-picker">
+                <button class="qty-btn" data-qty="3" onclick="pickQty(this)">3</button>
+                <button class="qty-btn active" data-qty="5" onclick="pickQty(this)">5</button>
+                <button class="qty-btn" data-qty="8" onclick="pickQty(this)">8</button>
+                <button class="qty-btn" data-qty="10" onclick="pickQty(this)">10</button>
+            </div>
+
+            <button class="start-btn" id="startBtn" onclick="startGeneration()">
+                🚀 Generate Quiz
+            </button>
+
+            <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <button class="action-btn back-dash-btn" onclick="showHistory()">📜 View Past Attempts</button>
+            </div>
+        </div>
+    `);
+}
+
+function onQuizFileSelected(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 15 * 1024 * 1024) {
+        alert("File too large — please keep it under 15 MB.");
+        event.target.value = "";
+        return;
+    }
+
+    uploadedFile = file;
+    const nameDisplay = document.getElementById("quizFileName");
+    nameDisplay.textContent = "✅ " + file.name;
+    nameDisplay.style.display = "block";
+    document.getElementById("uploadZone").classList.add("has-file");
+    document.querySelector("#uploadZone .zone-title").textContent = "File selected — click to change";
+}
+
+function pickQty(btn) {
+    document.querySelectorAll(".qty-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    pickedQty = parseInt(btn.dataset.qty);
+}
+
+// ============ GENERATION ============
+function startGeneration() {
+    if (!uploadedFile) {
+        alert("Please choose a file first.");
+        return;
+    }
+    generateFromFile();
+}
+
+function showLoading(msg) {
+    show(`
+        <div class="loading-box">
+            <div class="spinner"></div>
+            <p>${escapeHtml(msg || "Generating your quiz...")}</p>
+            <p style="font-size: 12px; color: #666;">This can take 10–20 seconds.</p>
+        </div>
+    `);
+}
+
+async function generateFromFile() {
+    showLoading("Reading your file and writing questions...");
+
+    try {
+        const formData = new FormData();
+        formData.append("file", uploadedFile);
+        formData.append("email", user.email);
+        formData.append("subject", currentSubject);
+        formData.append("numQuestions", pickedQty);
+        formData.append("topicHint", document.getElementById("topicHint")?.value || "");
+
+        const r = await fetch("/api/generate-quiz-from-file", {
+            method: "POST",
+            body: formData
+        });
+        const data = await r.json();
+
+        if (!data.success) {
+            showError(data.message || "Failed to generate quiz.");
+            return;
+        }
+
+        quizData = data.quiz;
+        quizId = data.quiz_id;
+        currentIndex = 0;
+        userAnswers = {};
+        showQuestion();
+
+    } catch (err) {
+        console.error(err);
+        showError("Couldn't reach the server. Try again.");
+    }
+}
+
+// ============ QUESTION ============
+function showQuestion() {
+    const q = quizData.questions[currentIndex];
+    const total = quizData.questions.length;
+    const progress = ((currentIndex) / total) * 100;
+    const isLast = currentIndex === total - 1;
+    const isFirst = currentIndex === 0;
+    const selected = userAnswers[currentIndex] || null;
+
+    const optionsHtml = ["A", "B", "C", "D"].map(letter => {
+        const text = q.options[letter];
+        const isSelected = selected === letter;
+        return `
+            <button class="opt-btn ${isSelected ? 'selected' : ''}"
+                    onclick="selectOption('${letter}')">
+                <span class="opt-letter">${letter}</span>
+                <span>${escapeHtml(text)}</span>
+            </button>
+        `;
+    }).join("");
+
+    show(`
+        <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+
+        <div class="q-meta">
+            <span>Question ${currentIndex + 1} of ${total}</span>
+            <span class="difficulty-badge difficulty-${q.difficulty || 'Easy'}">${escapeHtml(q.difficulty || 'Easy')}</span>
+        </div>
+
+        <div class="q-text">${escapeHtml(q.question)}</div>
+
+        <div class="q-options">${optionsHtml}</div>
+
+        <div class="nav-row">
+            <button class="nav-btn prev" onclick="prevQuestion()" ${isFirst ? "disabled" : ""}>
+                ← Previous
+            </button>
+
+            ${isLast
+                ? `<button class="nav-btn submit" onclick="submitQuiz()" ${selected ? "" : "disabled"}>
+                       ✅ Submit Quiz
+                   </button>`
+                : `<button class="nav-btn next" onclick="nextQuestion()" ${selected ? "" : "disabled"}>
+                       Next →
+                   </button>`
+            }
+        </div>
+    `);
+}
+
+function selectOption(letter) {
+    userAnswers[currentIndex] = letter;
+    showQuestion();
+}
+
+function nextQuestion() {
+    if (currentIndex < quizData.questions.length - 1) {
+        currentIndex++;
+        showQuestion();
+    }
+}
+
+function prevQuestion() {
+    if (currentIndex > 0) {
+        currentIndex--;
+        showQuestion();
+    }
+}
+
+// ============ SUBMIT ============
+async function submitQuiz() {
+    showLoading("Marking your answers...");
+
+    try {
+        const r = await fetch("/api/submit-quiz", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                quiz_id: quizId,
+                student_email: user.email,
+                answers: userAnswers
+            })
+        });
+        const data = await r.json();
+
+        if (!data.success) {
+            showError(data.message || "Failed to submit quiz.");
+            return;
+        }
+
+        showResults(data);
+    } catch (err) {
+        console.error(err);
+        showError("Couldn't reach the server. Try again.");
+    }
+}
+
+// ============ RESULTS ============
+function showResults(result) {
+    const pct = result.percentage;
+    const mood = pct >= 70 ? "pass" : pct >= 50 ? "medium" : "fail";
+    const emoji = pct >= 70 ? "🎉" : pct >= 50 ? "👍" : "💪";
+    const message = pct >= 70 ? "Excellent work!" :
+                    pct >= 50 ? "Good effort!" :
+                    "Keep practising — you'll get there!";
+
+    let reviewHtml = "";
+    result.detailed.forEach((d, i) => {
+        const cls = d.isCorrect ? "correct" : "wrong";
+        const yourPick = d.given ? escapeHtml(quizData.questions[i].options[d.given] || "") : "(no answer)";
+        const correctText = escapeHtml(quizData.questions[i].options[d.correct] || "");
+
+        reviewHtml += `
+            <div class="review-item ${cls}">
+                <div class="review-q">Q${i + 1}. ${escapeHtml(d.question)}</div>
+                ${d.isCorrect
+                    ? `<div class="review-answer">✅ You chose: <span class="correct-answer">${yourPick}</span></div>`
+                    : `<div class="review-answer">
+                           ❌ You chose: <span class="given-wrong">${yourPick}</span><br>
+                           ✅ Correct: <span class="correct-answer">${correctText}</span>
+                       </div>`
+                }
+                ${d.explanation ? `<div class="review-explanation">💡 ${escapeHtml(d.explanation)}</div>` : ""}
+            </div>
+        `;
+    });
+
+    show(`
+        <div class="result-hero ${mood}">
+            <div class="result-score">${pct}%</div>
+            <div class="result-text">${emoji} ${message}</div>
+            <div class="result-sub">You got ${result.score} out of ${result.total} correct</div>
+        </div>
+
+        <h3 style="color:white; margin: 25px 0 15px 0;">📋 Review Your Answers</h3>
+        ${reviewHtml}
+
+        <div class="action-row">
+            <button class="action-btn retake-btn" onclick="retakeQuiz()">🔄 Retake This Quiz</button>
+            <button class="action-btn new-quiz-btn" onclick="showSetup()">✨ New Quiz</button>
+            <button class="action-btn back-dash-btn" onclick="goBack()">← Back to Subject</button>
+        </div>
+    `);
+}
+
+function retakeQuiz() {
+    currentIndex = 0;
+    userAnswers = {};
+    showQuestion();
+}
+
+// ============ ERROR ============
+function showError(msg) {
+    show(`
+        <div class="error-box">
+            <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
+            <p>${escapeHtml(msg)}</p>
+            <div class="action-row">
+                <button class="action-btn new-quiz-btn" onclick="showSetup()">Try Again</button>
+                <button class="action-btn back-dash-btn" onclick="goBack()">← Back to Subject</button>
+            </div>
+        </div>
+    `);
+}
+
+// ============ HISTORY ============
+async function showHistory() {
+    showLoading("Loading your past attempts...");
+
+    try {
+        const r = await fetch(`/api/quiz-history?email=${encodeURIComponent(user.email)}&subject=${encodeURIComponent(currentSubject)}`);
+        const data = await r.json();
+
+        if (!data.success || data.attempts.length === 0) {
+            show(`
+                <div class="history-empty">
+                    <div style="font-size: 48px; margin-bottom: 15px;">📭</div>
+                    <p>You haven't taken any quizzes for ${escapeHtml(currentSubject)} yet.</p>
+                    <div class="action-row">
+                        <button class="action-btn new-quiz-btn" onclick="showSetup()">Take Your First Quiz</button>
+                    </div>
+                </div>
+            `);
+            return;
+        }
+
+        const rows = data.attempts.map(a => {
+            const pct = parseFloat(a.percentage);
+            const color = pct >= 70 ? "#2ecc71" : pct >= 50 ? "#f39c12" : "#e74c3c";
+            const date = new Date(a.completed_at).toLocaleString();
+            const source = a.source_material_ids && a.source_material_ids.startsWith("file:")
+                ? `📎 ${a.source_material_ids.replace("file:", "")}`
+                : `📚 From teacher materials`;
+
+            return `
+                <div class="review-item" style="border-left-color: ${color};">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <div style="color:white; font-weight:bold;">Quiz #${a.quiz_id} • ${a.subject}</div>
+                            <div class="history-source">${escapeHtml(source)}</div>
+                            <div style="color:#888; font-size:13px;">${date}</div>
+                        </div>
+                        <div style="font-size:28px; font-weight:bold; color:${color};">
+                            ${pct.toFixed(0)}%
+                        </div>
+                    </div>
+                    <div style="color:#aaa; font-size:13px; margin-top:6px;">
+                        ${a.score} / ${a.total_questions} correct
+                    </div>
+                </div>
+            `;
+        }).join("");
+
+        show(`
+            <h3 style="color:white; margin-bottom:15px;">📜 Your Past Attempts — ${escapeHtml(currentSubject)}</h3>
+            ${rows}
+            <div class="action-row">
+                <button class="action-btn new-quiz-btn" onclick="showSetup()">✨ Take a New Quiz</button>
+                <button class="action-btn back-dash-btn" onclick="goBack()">← Back to Subject</button>
+            </div>
+        `);
+
+    } catch (err) {
+        console.error(err);
+        showError("Couldn't load your history. Try again.");
+    }
+}
+
+// ============ NAV ============
+function goBack() {
+    window.location.href = "subject-dashboard.html";
+}
+
+// ============ BOOT ============
+document.addEventListener("DOMContentLoaded", () => {
+    showSetup();
+});
+</script>
+
+</body>
+</html>
