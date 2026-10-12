@@ -3,6 +3,7 @@
 <head>
     <title>Administrator Dashboard</title>
     <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
 </head>
 
 <body class="admin-bg">
@@ -15,9 +16,15 @@
     <div class="carousel">
         <button class="carousel-arrow" onclick="scrollMenu(-1)">&#8249;</button>
         <div class="menu" id="menu">
+        <button onclick="window.location.href='admin-attendance.html'">📅 Take Attendance</button>
        <button onclick="window.location.href='manage-contents.html'">Manage Contents</button>        
-       <button onclick="window.location.href='manage-contents.html'">Monitor Activity</button>
+       <button onclick="window.location.href='monitor-activity.html'">📊 Monitor Activity</button>
+        <button onclick="window.location.href='admin-announcement.html'">Announcements</button>
         <button onclick="window.location.href='manage-users.html'">Manage Users</button>
+        <button onclick="window.location.href='manage-teachers.html'">👨‍🏫 Manage Teachers</button>
+        <button onclick="window.location.href='manage-streams-subjects.html'">📚 Manage Streams & Subjects</button>
+        <button onclick="window.location.href='manage-pending.html'">📝 Manage Pending Users</button>
+        <button onclick="window.location.href='admin-promote.html'">🎓 End of Year Promotion</button>
         </div>
         <button class="carousel-arrow" onclick="scrollMenu(1)">&#8250;</button>
     </div>
@@ -65,7 +72,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const total = document.querySelectorAll("#menu button").length;
     carouselIndex = Math.floor((total - 1) / 2); // start with the middle card centered
     renderCarousel();
+
 });
+
 </script>
 
 </body>
