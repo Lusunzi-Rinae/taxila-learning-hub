@@ -12,14 +12,20 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@google/genai": "^2.16.0",
+    "@google/genai": "^2.21.0",
+    "axios": "^1.20.0",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "jsonwebtoken": "^9.0.3",
+    "mammoth": "^1.13.0",
     "msnodesqlv8": "^5.1.9",
     "mssql": "^12.5.0",
     "multer": "^2.1.1",
-    "nodemailer": "^8.0.11",
-    "openai": "^6.44.0"
+    "nodemailer": "^9.0.6",
+    "officeparser": "^8.0.0",
+    "openai": "^6.44.0",
+    "pdf-parse": "^1.1.4"
   }
 }
