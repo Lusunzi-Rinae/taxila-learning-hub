@@ -1,21 +1,153 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>🤖 AI Tutor</title>
     <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
     <style>
-        /* AI Tutor Styles */
-        .chat-container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 20px;
-            padding: 20px;
+        /* ===== Page layout ===== */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .app-layout {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* ===== Sidebar ===== */
+        .sidebar {
+            width: 280px;
+            background: rgba(10, 10, 20, 0.92);
             backdrop-filter: blur(10px);
-            height: 80vh;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 16px;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            border: 1px solid rgba(255,255,255,0.05);
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(6, 211, 247, 0.15);
+            border: 1px solid #06d3f7;
+            color: #06d3f7;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 20px;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .new-chat-btn:hover {
+            background: rgba(6, 211, 247, 0.28);
+            transform: scale(1.02);
+        }
+
+        .group-label {
+            color: #666;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 18px 0 8px 4px;
+            font-weight: bold;
+        }
+
+        .thread-item {
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #ccc;
+            font-size: 13.5px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: background 0.15s;
+            margin-bottom: 2px;
+        }
+
+        .thread-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .thread-item.active {
+            background: rgba(6, 211, 247, 0.15);
+            color: #06d3f7;
+            font-weight: bold;
+        }
+
+        .sidebar-empty {
+            color: #555;
+            font-size: 12px;
+            font-style: italic;
+            padding: 8px 4px;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .back-btn {
+            background: transparent;
+            border: none;
+            color: #06d3f7;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 8px 4px;
+            width: 100%;
+            text-align: left;
+        }
+
+        .back-btn:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== Main chat area ===== */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .chat-container {
+            flex: 1;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
         }
 
         .chat-header {
@@ -23,10 +155,11 @@
             justify-content: space-between;
             align-items: center;
             padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 15px;
             flex-wrap: wrap;
             gap: 10px;
+            flex-shrink: 0;
         }
 
         .chat-header h2 {
@@ -35,7 +168,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 24px;
+            font-size: 22px;
         }
 
         .chat-header .status {
@@ -59,9 +192,8 @@
         .status-dot.offline { background: #e74c3c; }
 
         @keyframes pulse {
-            0% { opacity: 1; }
+            0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
-            100% { opacity: 1; }
         }
 
         .chat-messages {
@@ -69,7 +201,7 @@
             overflow-y: auto;
             padding: 10px 5px;
             margin-bottom: 15px;
-            min-height: 200px;
+            min-height: 100px;
         }
 
         .message {
@@ -81,19 +213,11 @@
         }
 
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .message.user {
-            flex-direction: row-reverse;
-        }
+        .message.user { flex-direction: row-reverse; }
 
         .message .avatar {
             width: 40px;
@@ -120,16 +244,14 @@
             max-width: 75%;
             padding: 12px 18px;
             border-radius: 15px;
-            background: rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.08);
             color: white;
             line-height: 1.6;
             white-space: pre-wrap;
             word-break: break-word;
         }
 
-        .message .bubble p {
-            margin: 5px 0;
-        }
+        .message .bubble p { margin: 5px 0; }
 
         .message.user .bubble {
             background: rgba(6, 211, 247, 0.2);
@@ -137,8 +259,8 @@
         }
 
         .message.bot .bubble {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .message .time {
@@ -152,15 +274,16 @@
             display: flex;
             gap: 10px;
             padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
         }
 
         .chat-input-area input {
             flex: 1;
             padding: 12px 18px;
             border-radius: 25px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             color: white;
             font-size: 15px;
             outline: none;
@@ -169,12 +292,10 @@
 
         .chat-input-area input:focus {
             border-color: #06d3f7;
-            background: rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.08);
         }
 
-        .chat-input-area input::placeholder {
-            color: #666;
-        }
+        .chat-input-area input::placeholder { color: #666; }
 
         .chat-input-area button {
             padding: 12px 25px;
@@ -204,13 +325,14 @@
             gap: 8px;
             flex-wrap: wrap;
             padding: 8px 0 12px 0;
+            flex-shrink: 0;
         }
 
         .quick-actions button {
             padding: 5px 14px;
             border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             color: #aaa;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -228,16 +350,12 @@
             padding: 10px 0;
             color: #666;
             font-style: italic;
+            flex-shrink: 0;
         }
 
-        .typing-indicator.active {
-            display: block;
-        }
+        .typing-indicator.active { display: block; }
 
-        .typing-indicator span {
-            animation: typingDot 1.4s infinite;
-        }
-
+        .typing-indicator span { animation: typingDot 1.4s infinite; }
         .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
         .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
 
@@ -246,36 +364,19 @@
             30% { opacity: 1; }
         }
 
-        /* Scrollbar styling */
-        .chat-messages::-webkit-scrollbar {
-            width: 6px;
-        }
+        .chat-messages::-webkit-scrollbar,
+        .sidebar::-webkit-scrollbar { width: 6px; }
 
-        .chat-messages::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
+        .chat-messages::-webkit-scrollbar-track,
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
         }
 
-        .chat-messages::-webkit-scrollbar-thumb {
+        .chat-messages::-webkit-scrollbar-thumb,
+        .sidebar::-webkit-scrollbar-thumb {
             background: #06d3f7;
             border-radius: 10px;
-        }
-
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #04b5d9;
-        }
-
-        .back-btn {
-            background: transparent;
-            border: none;
-            color: #06d3f7;
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .back-btn:hover {
-            color: #04b5d9;
         }
 
         .welcome-message {
@@ -290,182 +391,422 @@
             margin-bottom: 20px;
         }
 
-        .welcome-message h3 {
-            color: white;
-            margin-bottom: 10px;
+        .welcome-message h3 { color: white; margin-bottom: 10px; }
+        .welcome-message p { margin: 5px 0; }
+
+        /* ===== File upload UI ===== */
+        .upload-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0 4px 0;
+            flex-wrap: wrap;
+            flex-shrink: 0;
         }
 
-        .welcome-message p {
-            margin: 5px 0;
-        }
-
-        .ai-mode-toggle {
-            background: rgba(6,211,247,0.15);
+        .upload-btn {
+            background: rgba(6, 211, 247, 0.15);
             border: 1px solid #06d3f7;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 15px;
-            font-size: 12px;
+            color: #06d3f7;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-weight: bold;
         }
 
-        .ai-mode-toggle:hover {
-            background: rgba(6,211,247,0.25);
-            transform: scale(1.05);
+        .upload-btn:hover {
+            background: rgba(6, 211, 247, 0.3);
+            transform: scale(1.03);
         }
 
-        .ai-mode-toggle.basic {
-            border-color: #f39c12;
-            background: rgba(243,156,18,0.15);
+        .upload-btn input[type="file"] { display: none; }
+
+        .file-chip {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: rgba(46, 204, 113, 0.15);
+            border: 1px solid #2ecc71;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #2ecc71;
+            max-width: 100%;
         }
 
-        .ai-mode-toggle.basic:hover {
-            background: rgba(243,156,18,0.25);
+        .file-chip.active { display: inline-flex; }
+
+        .file-chip .remove-file {
+            background: transparent;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+            min-width: 0;
+            margin: 0;
         }
 
-        .mode-indicator {
-            font-size: 11px;
-            padding: 2px 10px;
+        .file-chip .filename {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .message .bubble img {
+            max-width: 100%;
+            max-height: 300px;
             border-radius: 10px;
-            display: inline-block;
-            margin-left: 8px;
+            margin-top: 6px;
+            display: block;
         }
 
-        .mode-indicator.advanced {
-            background: rgba(6,211,247,0.2);
+        .message .bubble .file-attach {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-top: 6px;
             color: #06d3f7;
+            text-decoration: none;
         }
 
-        .mode-indicator.basic {
-            background: rgba(243,156,18,0.2);
-            color: #f39c12;
+        /* ===== MathJax styling ===== */
+        .message .bubble mjx-container {
+            font-size: 1.05em;
+            max-width: 100%;
         }
 
-        @media (max-width: 600px) {
-            .chat-container {
-                height: 90vh;
-                padding: 12px;
+        .message .bubble mjx-container[display="true"] {
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 8px 0;
+            margin: 8px 0;
+        }
+
+        .message .bubble mjx-container:not([display="true"]) {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* ===== Mobile ===== */
+        @media (max-width: 768px) {
+            .app-layout { flex-direction: column; }
+
+            .sidebar {
+                width: 100%;
+                max-height: 180px;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             }
-            .message .bubble {
-                max-width: 85%;
-                font-size: 14px;
-            }
-            .quick-actions button {
-                font-size: 11px;
-                padding: 4px 10px;
-            }
-            .chat-header h2 {
-                font-size: 18px;
-            }
+
+            .sidebar-footer { display: none; }
+            .chat-container { padding: 12px; }
+            .message .bubble { max-width: 85%; font-size: 14px; }
+            .chat-header h2 { font-size: 18px; }
         }
     </style>
 </head>
 
 <body class="student-bg">
 
-<div class="card" style="width: 95%; max-width: 900px; margin: 20px auto; padding: 15px; background: rgba(0,0,0,0.3);">
-    <div class="chat-container">
-        <!-- Chat Header -->
-        <div class="chat-header">
-            <div>
-                <h2>🤖 AI Tutor</h2>
-                <div class="status">
-                    <span class="status-dot" id="aiStatusDot"></span>
-                    <span id="aiStatusText">Loading...</span>
-                    <span class="mode-indicator advanced" id="modeIndicator">Advanced</span>
+<div class="app-layout">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar">
+        <button class="new-chat-btn" onclick="startNewChat()">✏️ New Chat</button>
+
+        <div id="threadList">
+            <div class="sidebar-empty">No previous chats.</div>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="back-btn" onclick="goBackToSubject()">← Back to Menu</button>
+        </div>
+    </aside>
+
+    <!-- ===== Main chat area ===== -->
+    <main class="main-area">
+        <div class="chat-container">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div>
+                    <h2>🤖 AI Tutor</h2>
+                    <div class="status">
+                        <span class="status-dot" id="aiStatusDot"></span>
+                        <span id="aiStatusText">Loading...</span>
+                    </div>
                 </div>
             </div>
-            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <button class="ai-mode-toggle" id="aiModeToggle" onclick="toggleAIMode()">
-                    🧠 Switch to Basic AI
-                </button>
-                <button class="back-btn" onclick="window.location.href='learner.html'">← Back</button>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button onclick="sendQuickMessage('What homework do I have?')">📚 My Homework</button>
+                <button onclick="sendQuickMessage('What study materials do I have?')">📂 My Materials</button>
+                <button onclick="sendQuickMessage('What did the teacher announce recently?')">📢 Announcements</button>
+                <button onclick="sendQuickMessage('How am I doing in this subject?')">📊 My Marks</button>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="chat-messages" id="chatMessages">
+                <div class="welcome-message">
+                    <span class="icon">🤖</span>
+                    <h3>Welcome to AI Tutor!</h3>
+                    <p>I'm here to help you with your studies.</p>
+                    <p style="color: #666; font-size: 14px;">Ask me about homework, subjects, study tips, or just have a chat!</p>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typingIndicator">
+                <span>●</span>
+                <span>●</span>
+                <span>●</span>
+                <span style="margin-left: 5px;">AI Tutor is thinking...</span>
+            </div>
+
+            <!-- Upload Row -->
+            <div class="upload-row">
+                <label class="upload-btn">
+                    📎 Attach File
+                    <input type="file" id="chatFileInput" onchange="onFileSelected(event)"
+                           accept="image/*,application/pdf,.docx,.pptx,.xlsx,.txt,.csv,.md">
+                </label>
+                <span class="file-chip" id="fileChip">
+                    <span class="filename" id="fileName">file.pdf</span>
+                    <button class="remove-file" onclick="clearFile()" title="Remove">✖</button>
+                </span>
+            </div>
+
+            <!-- Input Area -->
+            <div class="chat-input-area">
+                <input id="chatInput" type="text" placeholder="Ask me anything..." onkeypress="handleKeyPress(event)">
+                <button id="sendBtn" onclick="sendMessage()">Send</button>
             </div>
         </div>
-
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-            <button onclick="sendQuickMessage('Help me with math homework')">📐 Math Help</button>
-            <button onclick="sendQuickMessage('Study tips for exams')">📝 Study Tips</button>
-            <button onclick="sendQuickMessage('Tell me a joke')">😂 Joke</button>
-            <button onclick="sendQuickMessage('Motivate me')">💪 Motivation</button>
-            <button onclick="sendQuickMessage('What time is it?')">🕐 Time</button>
-            <button onclick="sendQuickMessage('Help with English essay')">📖 English</button>
-            <button onclick="sendQuickMessage('Explain photosynthesis')">🌿 Science</button>
-            <button onclick="sendQuickMessage('What is AI?')">🤖 About AI</button>
-        </div>
-
-        <!-- Chat Messages -->
-        <div class="chat-messages" id="chatMessages">
-            <div class="welcome-message">
-                <span class="icon">🤖</span>
-                <h3>Welcome to AI Tutor!</h3>
-                <p>I'm here to help you with your studies.</p>
-                <p style="color: #666; font-size: 14px;">Ask me about homework, subjects, study tips, or just have a chat!</p>
-            </div>
-        </div>
-
-        <!-- Typing Indicator -->
-        <div class="typing-indicator" id="typingIndicator">
-            <span>●</span>
-            <span>●</span>
-            <span>●</span>
-            <span style="margin-left: 5px;">AI Tutor is thinking...</span>
-        </div>
-
-        <!-- Input Area -->
-        <div class="chat-input-area">
-            <input id="chatInput" type="text" placeholder="Ask me anything..." onkeypress="handleKeyPress(event)">
-            <button id="sendBtn" onclick="sendMessage()">Send</button>
-        </div>
-    </div>
+    </main>
 </div>
 
 <script>
-// Get user from localStorage
+// ============ AUTH ============
 const user = JSON.parse(localStorage.getItem("loggedInUser"));
-
-// Redirect if not logged in
 if (!user) {
-    window.location.href = "Login.html";
+    window.location.href = "index.html";
 }
 
 const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
 const typingIndicator = document.getElementById('typingIndicator');
+const threadList = document.getElementById('threadList');
 
-let useAdvancedAI = true;
+// ============ STATE ============
+let aiContext = null;
+let currentThreadId = null;
+let selectedFile = null;
 
-// ============================================
-// ===== CHECK AI STATUS =====
-// ============================================
+const currentSubject = localStorage.getItem('currentSubject') || '';
+
+if (!currentSubject) {
+    console.warn("⚠️ No currentSubject in localStorage — AI grounding disabled.");
+}
+
+// ============ THREAD: CREATE NEW ============
+async function startNewChat() {
+    try {
+        const r = await fetch('/api/chat/new-thread', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: user.email, subject: currentSubject })
+        });
+        const data = await r.json();
+
+        if (!data.success) {
+            console.error("Could not start new chat:", data.message);
+            return;
+        }
+
+        currentThreadId = data.thread_id;
+        console.log(`🆕 Started new thread #${currentThreadId}`);
+
+        // Reset UI
+        chatMessages.innerHTML = '';
+        showGreeting();
+        await renderSidebar();
+    } catch (err) {
+        console.error("startNewChat error:", err);
+    }
+}
+
+// ============ SIDEBAR: RENDER THREAD LIST ============
+async function renderSidebar() {
+    try {
+        const r = await fetch(`/api/chat/threads?email=${encodeURIComponent(user.email)}&subject=${encodeURIComponent(currentSubject)}`);
+        const data = await r.json();
+
+        if (!data.success || !data.threads || data.threads.length === 0) {
+            threadList.innerHTML = '<div class="sidebar-empty">No previous chats.</div>';
+            return;
+        }
+
+        // Group threads by date
+        const groups = {
+            today: [],
+            yesterday: [],
+            week: [],
+            month: [],
+            older: []
+        };
+
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfYesterday = new Date(startOfToday);
+        startOfYesterday.setDate(startOfToday.getDate() - 1);
+        const startOfWeek = new Date(startOfToday);
+        startOfWeek.setDate(startOfToday.getDate() - 7);
+        const startOfMonth = new Date(startOfToday);
+        startOfMonth.setDate(startOfToday.getDate() - 30);
+
+        data.threads.forEach(t => {
+            // Skip empty threads
+            if (!t.message_count || parseInt(t.message_count) === 0) return;
+
+            const dt = new Date(t.last_message_at);
+            if (dt >= startOfToday) groups.today.push(t);
+            else if (dt >= startOfYesterday) groups.yesterday.push(t);
+            else if (dt >= startOfWeek) groups.week.push(t);
+            else if (dt >= startOfMonth) groups.month.push(t);
+            else groups.older.push(t);
+        });
+
+        // Build HTML
+        let html = '';
+        const labels = {
+            today: 'Today',
+            yesterday: 'Yesterday',
+            week: '7 Days',
+            month: '30 Days',
+            older: 'Older'
+        };
+
+        for (const key of ['today', 'yesterday', 'week', 'month', 'older']) {
+            const list = groups[key];
+            if (list.length === 0) continue;
+
+            html += `<div class="group-label">${labels[key]}</div>`;
+            list.forEach(t => {
+                const isActive = (currentThreadId && parseInt(currentThreadId) === parseInt(t.thread_id)) ? 'active' : '';
+                const title = escapeHtml(t.title || 'New chat');
+                html += `<div class="thread-item ${isActive}" onclick="loadThread(${t.thread_id})" title="${title}">${title}</div>`;
+            });
+        }
+
+        threadList.innerHTML = html || '<div class="sidebar-empty">No previous chats.</div>';
+    } catch (err) {
+        console.error("renderSidebar error:", err);
+        threadList.innerHTML = '<div class="sidebar-empty">Could not load chats.</div>';
+    }
+}
+
+// ============ THREAD: LOAD ONE ============
+async function loadThread(threadId) {
+    try {
+        const r = await fetch(`/api/chat/thread/${threadId}?email=${encodeURIComponent(user.email)}`);
+        const data = await r.json();
+
+        if (!data.success) {
+            console.error("Could not load thread:", data.message);
+            return;
+        }
+
+        currentThreadId = threadId;
+
+        // Clear messages
+        chatMessages.innerHTML = '';
+
+        if (!data.messages || data.messages.length === 0) {
+            showGreeting();
+        } else {
+            data.messages.forEach(m => {
+                if (m.role === 'user') {
+                    addHistoricalMessage(m.message, 'user', m.created_at);
+                } else {
+                    addHistoricalMessage(m.message, 'bot', m.created_at);
+                }
+            });
+        }
+
+        await renderSidebar();
+    } catch (err) {
+        console.error("loadThread error:", err);
+    }
+}
+
+// ============ GREETING ============
+function showGreeting() {
+    const subjectLabel = currentSubject ? ` for **${currentSubject}**` : "";
+    const contextLine = aiContext
+        ? `\nI can currently see **${aiContext.homework.length} homework item(s)**, **${aiContext.study_materials.length} study material(s)**, and **${aiContext.announcements.length} announcement(s)** for this subject.`
+        : ``;
+
+    const greeting = `Hello ${user.full_name || 'Student'}! 👋 I'm your AI Tutor${subjectLabel}.${contextLine}
+
+Try asking me:
+• 📚 "What homework do I have?"
+• 📂 "What study materials do I have?"
+• 📊 "How am I doing in this subject?"
+• 📢 "What did the teacher announce recently?"
+
+📎 **You can also upload a photo of your textbook page, a PDF worksheet, or a PowerPoint file** — just click the *Attach File* button and I'll help you with it!
+
+What would you like to know?`;
+    addMessage(greeting, 'bot');
+}
+
+// ============ COURSE CONTEXT ============
+async function loadCourseContext() {
+    if (!user || !user.email || !currentSubject) return;
+
+    try {
+        const r = await fetch(
+            `/api/ai-context?email=${encodeURIComponent(user.email)}&subject=${encodeURIComponent(currentSubject)}`
+        );
+        const data = await r.json();
+
+        if (data.success) {
+            aiContext = data;
+            console.log(`📚 AI grounding loaded for ${currentSubject}:`,
+                data.homework.length, "homework,",
+                data.study_materials.length, "materials,",
+                data.announcements.length, "announcements,",
+                data.file_text.length, "chars of file text");
+        } else {
+            console.warn("Could not load AI context:", data.message);
+        }
+    } catch (err) {
+        console.warn("AI context fetch failed:", err);
+    }
+}
+
+// ============ CHECK AI STATUS ============
 async function checkAIStatus() {
     try {
         const response = await fetch('/api/chat/status');
         const data = await response.json();
         const statusDot = document.getElementById('aiStatusDot');
         const statusText = document.getElementById('aiStatusText');
-        const modeToggle = document.getElementById('aiModeToggle');
-        const modeIndicator = document.getElementById('modeIndicator');
-        
-        if (data.success && data.openai && data.openai.status === 'available') {
+
+        if (data.success && data.hasKey) {
             statusDot.className = 'status-dot online';
-            statusText.textContent = 'Advanced AI Online';
-            useAdvancedAI = true;
-            modeToggle.textContent = '🧠 Switch to Basic AI';
-            modeToggle.className = 'ai-mode-toggle';
-            modeIndicator.textContent = 'Advanced';
-            modeIndicator.className = 'mode-indicator advanced';
+            statusText.textContent = 'AI Tutor Online';
         } else {
-            statusDot.className = 'status-dot basic';
-            statusText.textContent = 'Basic AI Mode';
-            useAdvancedAI = false;
-            modeToggle.textContent = '🤖 Switch to Advanced AI';
-            modeToggle.className = 'ai-mode-toggle basic';
-            modeIndicator.textContent = 'Basic';
-            modeIndicator.className = 'mode-indicator basic';
+            statusDot.className = 'status-dot offline';
+            statusText.textContent = 'Offline';
         }
     } catch (error) {
         console.error('Status check error:', error);
@@ -474,33 +815,124 @@ async function checkAIStatus() {
     }
 }
 
-// ============================================
-// ===== TOGGLE AI MODE =====
-// ============================================
-function toggleAIMode() {
-    useAdvancedAI = !useAdvancedAI;
-    const toggle = document.getElementById('aiModeToggle');
-    const modeIndicator = document.getElementById('modeIndicator');
-    
-    if (useAdvancedAI) {
-        toggle.textContent = '🧠 Switch to Basic AI';
-        toggle.className = 'ai-mode-toggle';
-        modeIndicator.textContent = 'Advanced';
-        modeIndicator.className = 'mode-indicator advanced';
-        addMessage('🔄 Switched to **Advanced AI** mode. I can now answer more complex questions using OpenAI!', 'bot');
-    } else {
-        toggle.textContent = '🤖 Switch to Advanced AI';
-        toggle.className = 'ai-mode-toggle basic';
-        modeIndicator.textContent = 'Basic';
-        modeIndicator.className = 'mode-indicator basic';
-        addMessage('🔄 Switched to **Basic AI** mode. I\'ll use simpler responses.', 'bot');
+// ============ FILE UPLOAD ============
+function onFileSelected(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 15 * 1024 * 1024) {
+        alert("File too large — please keep it under 15 MB.");
+        event.target.value = "";
+        return;
     }
+
+    selectedFile = file;
+    document.getElementById("fileName").textContent = file.name;
+    document.getElementById("fileChip").classList.add("active");
+    chatInput.focus();
 }
 
-// ============================================
-// ===== SEND MESSAGE =====
-// ============================================
+function clearFile() {
+    selectedFile = null;
+    document.getElementById("chatFileInput").value = "";
+    document.getElementById("fileChip").classList.remove("active");
+}
+
+async function sendMessageWithFile() {
+    const message = chatInput.value.trim();
+    const file = selectedFile;
+    if (!file) return;
+
+    chatInput.value = '';
+    sendBtn.disabled = true;
+
+    addMessageWithFile(message || "(no message)", 'user', file);
+    typingIndicator.classList.add('active');
+    clearFile();
+
+    try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("message", message || "");
+        formData.append("mode", "advanced");
+        formData.append("studentEmail", user.email);
+        formData.append("subject", currentSubject || "");
+        formData.append("threadId", currentThreadId || "");
+
+        const response = await fetch('/api/chat-with-file', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        typingIndicator.classList.remove('active');
+
+        if (data.success) {
+            addMessage(data.response, 'bot');
+            await renderSidebar();
+        } else {
+            addMessage(data.response || 'Sorry, I couldn\'t read that file.', 'bot');
+        }
+    } catch (error) {
+        console.error('File chat error:', error);
+        typingIndicator.classList.remove('active');
+        addMessage('Sorry, I had trouble reading that file. Please try again.', 'bot');
+    }
+
+    sendBtn.disabled = false;
+    chatInput.focus();
+}
+
+function addMessageWithFile(text, sender, file) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = `avatar ${sender}`;
+    avatar.textContent = sender === 'bot' ? '🤖' : '👤';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+
+    if (text && text !== "(no message)") {
+        const p = document.createElement('p');
+        p.textContent = text;
+        bubble.appendChild(p);
+    }
+
+    if (file && file.type.startsWith("image/")) {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        img.alt = file.name;
+        bubble.appendChild(img);
+    } else if (file) {
+        const chip = document.createElement("span");
+        chip.className = "file-attach";
+        chip.innerHTML = `📎 ${file.name}`;
+        bubble.appendChild(chip);
+    }
+
+    const time = document.createElement('span');
+    time.className = 'time';
+    time.textContent = new Date().toLocaleTimeString();
+    bubble.appendChild(time);
+
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(bubble);
+    chatMessages.appendChild(messageDiv);
+
+    const welcome = chatMessages.querySelector('.welcome-message');
+    if (welcome) welcome.remove();
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// ============ SEND MESSAGE ============
 async function sendMessage() {
+    if (selectedFile) {
+        return sendMessageWithFile();
+    }
+
     const message = chatInput.value.trim();
     if (!message) return;
 
@@ -510,13 +942,16 @@ async function sendMessage() {
     typingIndicator.classList.add('active');
 
     try {
-        let endpoint = useAdvancedAI ? '/api/chat/advanced' : '/api/chat';
-        const response = await fetch(endpoint, {
+        const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 message: message,
-                studentEmail: user.email 
+                mode: 'advanced',
+                studentEmail: user.email,
+                subject: currentSubject,
+                context: aiContext,
+                threadId: currentThreadId
             })
         });
 
@@ -525,8 +960,9 @@ async function sendMessage() {
 
         if (data.success) {
             addMessage(data.response, 'bot');
+            await renderSidebar();
         } else {
-            addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+            addMessage(data.response || 'Sorry, I encountered an error. Please try again.', 'bot');
         }
     } catch (error) {
         console.error('Chat error:', error);
@@ -538,24 +974,20 @@ async function sendMessage() {
     chatInput.focus();
 }
 
-// ============================================
-// ===== ADD MESSAGE =====
-// ============================================
+// ============ ADD MESSAGE ============
 function addMessage(text, sender) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
-    
+
     const avatar = document.createElement('div');
     avatar.className = `avatar ${sender}`;
     avatar.textContent = sender === 'bot' ? '🤖' : '👤';
-    
+
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
-    
-    // Handle markdown-style bold
+
     const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
-    // Handle line breaks
+
     const paragraphs = formattedText.split('\n');
     paragraphs.forEach((p, i) => {
         if (p.trim()) {
@@ -567,71 +999,104 @@ function addMessage(text, sender) {
             bubble.appendChild(br);
         }
     });
-    
-    // Add timestamp
+
     const time = document.createElement('span');
     time.className = 'time';
     time.textContent = new Date().toLocaleTimeString();
     bubble.appendChild(time);
-    
+
     messageDiv.appendChild(avatar);
     messageDiv.appendChild(bubble);
-    
     chatMessages.appendChild(messageDiv);
-    
-    // Remove welcome message if present
+
     const welcome = chatMessages.querySelector('.welcome-message');
-    if (welcome) {
-        welcome.remove();
-    }
-    
-    // Scroll to bottom
+    if (welcome) welcome.remove();
+
     chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([messageDiv]).catch(err => {
+            console.warn('MathJax render error:', err);
+        });
+    }
 }
 
-// ============================================
-// ===== QUICK MESSAGE =====
-// ============================================
+function addHistoricalMessage(text, sender, timestamp) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = `avatar ${sender}`;
+    avatar.textContent = sender === 'bot' ? '🤖' : '👤';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+
+    const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    const paragraphs = formattedText.split('\n');
+    paragraphs.forEach((p, i) => {
+        if (p.trim()) {
+            const pEl = document.createElement('p');
+            pEl.innerHTML = p;
+            bubble.appendChild(pEl);
+        } else if (i < paragraphs.length - 1) {
+            bubble.appendChild(document.createElement('br'));
+        }
+    });
+
+    const time = document.createElement('span');
+    time.className = 'time';
+    time.textContent = timestamp ? new Date(timestamp).toLocaleString() : "";
+    bubble.appendChild(time);
+
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(bubble);
+    chatMessages.appendChild(messageDiv);
+
+    if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([messageDiv]).catch(err => {
+            console.warn('MathJax render error:', err);
+        });
+    }
+}
+
+// ============ QUICK MESSAGE ============
 function sendQuickMessage(message) {
     chatInput.value = message;
     sendMessage();
 }
 
-// ============================================
-// ===== HANDLE ENTER KEY =====
-// ============================================
 function handleKeyPress(event) {
-    if (event.key === 'Enter') {
-        sendMessage();
-    }
+    if (event.key === 'Enter') sendMessage();
 }
 
-// ============================================
-// ===== PAGE LOAD =====
-// ============================================
-document.addEventListener('DOMContentLoaded', function() {
+// ============ UTILS ============
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text == null ? "" : String(text);
+    return div.innerHTML;
+}
+
+// ============ PAGE LOAD ============
+document.addEventListener('DOMContentLoaded', async function () {
     chatInput.focus();
     checkAIStatus();
-    
-    // Add greeting after status check
-    setTimeout(() => {
-        const hasMessages = chatMessages.querySelectorAll('.message').length > 0;
-        if (!hasMessages) {
-            const greeting = `Hello ${user.full_name || 'Student'}! 👋 I'm your AI Tutor. 
-            
-I can help you with:
-• 📚 Homework and assignments
-• 📝 Study tips and exam preparation  
-• 📊 Understanding different subjects
-• 💪 Motivation and encouragement
-• 😂 Jokes and fun facts
-
-What would you like to learn about today?`;
-            addMessage(greeting, 'bot');
-        }
-    }, 1500);
+    await loadCourseContext();
+    await startNewChat();
 });
+
+// ============ GO BACK ============
+function goBackToSubject() {
+    const subject = localStorage.getItem('currentSubject');
+    if (subject) {
+        window.location.href = 'subject-dashboard.html';
+    } else {
+        window.location.href = 'learner.html';
+    }
+}
 </script>
 
 </body>
+
 </html>
