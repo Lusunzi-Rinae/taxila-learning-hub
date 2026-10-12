@@ -3,6 +3,7 @@
 <head>
     <title>Teacher Dashboard</title>
     <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
     <style>
         .dashboard-card {
             max-width: 900px;
@@ -20,6 +21,70 @@
             color: #06d3f7;
             font-weight: bold;
         }
+        .class-selector {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin: 15px 0 20px 0;
+            flex-wrap: wrap;
+        }
+        .class-selector label {
+            color: #aaa;
+            font-weight: bold;
+        }
+        .class-selector select {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+            min-width: 200px;
+        }
+        .class-selector select option {
+            background: #1a1a2e;
+            color: white;
+        }
+        .class-info {
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .class-info .subject {
+            color: #06d3f7;
+            font-weight: bold;
+        }
+        .class-info .grade {
+            color: white;
+            font-weight: bold;
+        }
+        .class-info .students {
+            color: #aaa;
+            float: right;
+        }
+        .class-info .students span {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        .no-class-msg {
+            text-align: center;
+            padding: 30px;
+            color: #f39c12;
+        }
+        .no-class-msg .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+        .menu-container {
+            display: none;
+        }
+        .menu-container.show {
+            display: block;
+        }
     </style>
 </head>
 
@@ -35,20 +100,47 @@
         <span id="teacherName"></span> • 📧 <span id="teacherEmail"></span>
     </div>
 
-    <div class="carousel">
-        <button class="carousel-arrow" onclick="scrollMenu(-1)">&#8249;</button>
-        <div class="menu" id="menu">
-            <button onclick="window.location.href='upload-homework.html'">📚 Upload Homework</button>
-            <button onclick="window.location.href='upload-announcements.html'">📢 Upload Announcements</button>
-            <button onclick="window.location.href='upload-marks.html'">📊 Upload Marks</button>
-            <button onclick="window.location.href='view-student-performance.html'">📈 View Performance</button>
-            <button onclick="window.location.href='upload-attendance.html'">📅 Upload Attendance</button>
-            <button onclick="window.location.href='manage-attendance.html'">📅 Manage Attendance</button>
-            <button onclick="window.location.href='upload-study-material.html'">📚 Upload Study Materials</button>
-            <button onclick="window.location.href='study-materials.html'">📚 View Study Materials</button>
-            <button onclick="window.location.href='manage-teacher-content.html'">🗑️ Manage My Content</button>
+    <!-- Class Selector -->
+    <div class="class-selector">
+        <label>📚 Select Class:</label>
+        <select id="classSelect" onchange="switchClass()">
+            <option value="">-- Loading classes --</option>
+        </select>
+    </div>
+
+    <!-- Class Info -->
+    <div id="classInfo" class="class-info">
+        <span class="subject" id="classSubject">Mathematics</span>
+        <span class="grade" id="classGrade">Grade 10</span>
+        <span class="students">👨‍🎓 Students: <span id="studentCount">0</span></span>
+    </div>
+
+    <!-- No Class Message -->
+    <div id="noClassMsg" class="no-class-msg" style="display: none;">
+        <span class="icon">📚</span>
+        <p>You have no classes assigned yet.</p>
+        <p style="color: #666; font-size: 13px;">Please contact the admin to assign your subjects and grades.</p>
+    </div>
+
+    <!-- Menu -->
+    <div id="menuContainer" class="menu-container">
+        <div class="carousel">
+            <button class="carousel-arrow" onclick="scrollMenu(-1)">&#8249;</button>
+            <div class="menu" id="menu">
+                <button onclick="window.location.href='upload-homework.html'">📚 Upload Homework</button>
+                <button onclick="window.location.href='upload-announcements.html'">📢 Upload Announcements</button>
+                <button onclick="window.location.href='upload-marks.html'">📊 Upload Marks</button>
+                <button onclick="window.location.href='view-student-performance.html'">📈 View Performance</button>
+                <button onclick="window.location.href='view-attendance.html'">📅 View Attendance</button>
+                <button onclick="window.location.href='upload-study-material.html'">📚 Upload Study Materials</button>
+                <button onclick="window.location.href='view-study-materials.html'">📚 View Study Materials</button>
+                <button onclick="window.location.href='manage-teacher-content.html'">🗑️ Manage My Content</button>
+                <button onclick="window.location.href='risk-prediction.html'">🔮 Risk Prediction</button>
+                <button onclick="window.location.href='manage-knowledge-base.html'">📖 My AI Knowledge Base</button>
+                
+            </div>
+            <button class="carousel-arrow" onclick="scrollMenu(1)">&#8250;</button>
         </div>
-        <button class="carousel-arrow" onclick="scrollMenu(1)">&#8250;</button>
     </div>
 
     <button class="logout" onclick="logout()">🚪 Logout</button>
@@ -57,19 +149,118 @@
 <script>
 const user = JSON.parse(localStorage.getItem("loggedInUser"));
 
+
 if (!user || user.role !== "teacher") {
     window.location.href = "Login.html";
 }
 
-// Display teacher info
 document.getElementById('teacherName').textContent = user.full_name || 'Teacher';
 document.getElementById('teacherEmail').textContent = user.email || 'No email';
 
+// Check if coming from another page (not fresh login)
+const isReturning = localStorage.getItem('returningFromPage');
+if (isReturning) {
+    localStorage.removeItem('returningFromPage');
+} else {
+    // Fresh login - clear the teacher class
+    localStorage.removeItem('teacherClass');
+}
+
+// ============================================
+// ===== LOAD TEACHER CLASSES =====
+// ============================================
+async function loadClasses() {
+    const select = document.getElementById('classSelect');
+    select.innerHTML = '<option value="">Loading classes...</option>';
+
+    try {
+        const response = await fetch("/teacher-classes/" + encodeURIComponent(user.email));
+        const data = await response.json();
+
+        if (!data.success || data.classes.length === 0) {
+            select.innerHTML = '<option value="">No classes assigned</option>';
+            document.getElementById('noClassMsg').style.display = 'block';
+            document.getElementById('classInfo').style.display = 'none';
+            document.getElementById('menuContainer').classList.remove('show');
+            return;
+        }
+
+        let options = '<option value="">-- Select Class --</option>';
+        data.classes.forEach(cls => {
+            options += `<option value="${cls.subject}|${cls.grade}">${cls.subject} (${cls.grade})</option>`;
+        });
+        select.innerHTML = options;
+
+// ============================================
+// ===== AUTO-SELECT CLASS WHEN RETURNING FROM OTHER PAGES =====
+// ============================================
+const savedClass = localStorage.getItem('teacherClass');
+if (savedClass) {
+    const parsed = JSON.parse(savedClass);
+    const targetValue = `${parsed.subject}|${parsed.grade}`;
+    
+    for (let i = 0; i < select.options.length; i++) {
+        if (select.options[i].value === targetValue) {
+            select.value = select.options[i].value;
+            switchClass();
+            break;
+        }
+    }
+}
+
+      } catch (error) {
+        console.error("Error loading classes:", error);
+        select.innerHTML = '<option value="">Error loading classes</option>';
+    }
+}
+
+// ============================================
+// ===== SWITCH CLASS =====
+// ============================================
+async function switchClass() {
+    const select = document.getElementById('classSelect');
+    const selectedValue = select.value;
+
+    if (!selectedValue) {
+        document.getElementById('classInfo').style.display = 'none';
+        document.getElementById('menuContainer').classList.remove('show');
+        return;
+    }
+
+    const [subject, grade] = selectedValue.split('|');
+   
+    // Store in localStorage
+    localStorage.setItem('teacherClass', JSON.stringify({ subject, grade }));
+
+    document.getElementById('classSubject').textContent = subject;
+    document.getElementById('classGrade').textContent = grade;
+    document.getElementById('classInfo').style.display = 'block';
+
+    // Get student count
+    try {
+        const response = await fetch(`/class-student-count?subject=${encodeURIComponent(subject)}&grade=${encodeURIComponent(grade)}`);
+        const data = await response.json();
+        document.getElementById('studentCount').textContent = data.count || 0;
+    } catch (error) {
+        console.error('Error getting student count:', error);
+        document.getElementById('studentCount').textContent = '?';
+    }
+
+    document.getElementById('menuContainer').classList.add('show');
+    document.getElementById('noClassMsg').style.display = 'none';
+}
+// ============================================
+// ===== LOGOUT =====
+// ============================================
 function logout() {
     localStorage.removeItem("loggedInUser");
+    localStorage.removeItem("teacherClass");
     window.location.href = "index.html";
 }
 
+// ============================================
+// ===== CAROUSEL =====
+// ============================================
 let carouselIndex = 0;
 
 function renderCarousel() {
@@ -96,6 +287,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const total = document.querySelectorAll("#menu button").length;
     carouselIndex = Math.floor((total - 1) / 2);
     renderCarousel();
+    loadClasses();
 });
 </script>
 
