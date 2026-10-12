@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Class Risk Report</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <style>
+        .class-info-box {
+            background: rgba(6, 211, 247, 0.1);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #06d3f7;
+        }
+        .class-info-box .subject {
+            color: #06d3f7;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .class-info-box .grade {
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .class-info-box .students-count {
+            color: #aaa;
+            float: right;
+        }
+        .class-info-box .students-count span {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 15px 0 20px 0;
+        }
+        .stats-bar .stat {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stats-bar .stat .number {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .stats-bar .stat .label {
+            color: #aaa;
+            font-size: 12px;
+        }
+        .stats-bar .stat.total .number { color: #06d3f7; }
+        .stats-bar .stat.low .number { color: #2ecc71; }
+        .stats-bar .stat.medium .number { color: #f39c12; }
+        .stats-bar .stat.high .number { color: #e74c3c; }
+
+        .student-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-left: 4px solid #888;
+            transition: all 0.3s ease;
+        }
+        .student-row:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        .student-row .info {
+            flex: 1;
+            min-width: 150px;
+        }
+        .student-row .info .name {
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .student-row .info .email {
+            color: #888;
+            font-size: 13px;
+        }
+        .student-row .score {
+            font-weight: bold;
+            font-size: 18px;
+            min-width: 60px;
+            text-align: center;
+        }
+        .student-row .score.high { color: #2ecc71; }
+        .student-row .score.medium { color: #f39c12; }
+        .student-row .score.low { color: #e74c3c; }
+
+        .risk-badge {
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 13px;
+            min-width: 80px;
+            text-align: center;
+        }
+        .risk-badge.low { background: #2ecc71; color: white; }
+        .risk-badge.medium { background: #f39c12; color: white; }
+        .risk-badge.high { background: #e74c3c; color: white; animation: blink 1.5s infinite; }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .no-students {
+            text-align: center;
+            padding: 30px;
+            color: #888;
+        }
+        .no-students .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        #studentList {
+            max-height: 450px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        #studentList::-webkit-scrollbar {
+            width: 6px;
+        }
+        #studentList::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        #studentList::-webkit-scrollbar-thumb {
+            background: #06d3f7;
+            border-radius: 10px;
+        }
+
+        .back-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+        }
+
+        .message-box {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .message-box.error {
+            display: block;
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+        .message-box.info {
+            display: block;
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid #3498db;
+            color: #3498db;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #aaa;
+        }
+
+        .no-class-msg {
+            text-align: center;
+            padding: 30px;
+            color: #f39c12;
+        }
+        .no-class-msg .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .refresh-btn {
+            background: #2ecc71;
+            padding: 10px 25px;
+            border-radius: 20px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .refresh-btn:hover {
+            background: #27ae60;
+        }
+    </style>
+</head>
+
+<body class="teacher-bg">
+
+<h1 class="main-title">📊 Class Risk Report</h1>
+
+<div class="card">
+    <h2>Risk Analysis for Your Class</h2>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <!-- Class Info -->
+    <div id="classInfoBox" class="class-info-box" style="display: none;">
+        <span class="subject" id="classSubject">Physical Sciences</span>
+        <span class="grade" id="classGrade">Grade 11</span>
+        <span class="students-count">👨‍🎓 Students: <span id="studentCount">0</span></span>
+    </div>
+
+    <!-- No Class Message -->
+    <div id="noClassMsg" class="no-class-msg" style="display: none;">
+        <span class="icon">📚</span>
+        <p>No class selected</p>
+        <p style="color: #666; font-size: 13px;">Please go back to the dashboard and select a class first.</p>
+        <button onclick="window.location.href='teacher.html'" style="margin-top: 15px;">← Go to Dashboard</button>
+    </div>
+
+    <!-- Refresh Button -->
+    <button class="refresh-btn" onclick="loadClassRisk()">🔄 Refresh Report</button>
+
+    <!-- Stats -->
+    <div class="stats-bar" id="statsBar" style="display: none;">
+        <div class="stat total">
+            <span class="number" id="totalCount">0</span>
+            <span class="label">👥 Total Students</span>
+        </div>
+        <div class="stat low">
+            <span class="number" id="lowCount">0</span>
+            <span class="label">🟢 Low Risk</span>
+        </div>
+        <div class="stat medium">
+            <span class="number" id="mediumCount">0</span>
+            <span class="label">🟡 Medium Risk</span>
+        </div>
+        <div class="stat high">
+            <span class="number" id="highCount">0</span>
+            <span class="label">🔴 High Risk</span>
+        </div>
+    </div>
+
+    <!-- Student List -->
+    <div id="studentList"></div>
+
+    <button onclick="goBackToDashboard()" class="back-btn">← Back to Dashboard</button>
+</div>
+
+<script>
+const user = JSON.parse(localStorage.getItem("loggedInUser"));
+
+if (!user || user.role !== "teacher") {
+    window.location.href = "Login.html";
+}
+
+// Get the selected class from localStorage
+const teacherClass = JSON.parse(localStorage.getItem('teacherClass'));
+
+// ============================================
+// ===== PAGE LOAD =====
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    if (!teacherClass) {
+        document.getElementById('noClassMsg').style.display = 'block';
+        document.getElementById('classInfoBox').style.display = 'none';
+        document.getElementById('statsBar').style.display = 'none';
+        document.getElementById('studentList').innerHTML = '';
+        return;
+    }
+
+    document.getElementById('noClassMsg').style.display = 'none';
+    document.getElementById('classInfoBox').style.display = 'block';
+    document.getElementById('classSubject').textContent = teacherClass.subject;
+    document.getElementById('classGrade').textContent = teacherClass.grade;
+    
+    loadClassRisk();
+});
+
+// ============================================
+// ===== LOAD CLASS RISK =====
+// ============================================
+async function loadClassRisk() {
+    const list = document.getElementById('studentList');
+    const statsBar = document.getElementById('statsBar');
+    const messageBox = document.getElementById('messageBox');
+
+    if (!teacherClass) {
+        return;
+    }
+
+    const { subject, grade } = teacherClass;
+
+    list.innerHTML = '<div class="loading">📊 Loading student data...</div>';
+    statsBar.style.display = 'none';
+    messageBox.className = 'message-box';
+    messageBox.style.display = 'none';
+
+    try {
+        const response = await fetch(`/api/class-risk?subject=${encodeURIComponent(subject)}&grade=${encodeURIComponent(grade)}`);
+        const data = await response.json();
+
+        if (!data.success) {
+            messageBox.className = 'message-box error';
+            messageBox.textContent = '❌ ' + data.message;
+            messageBox.style.display = 'block';
+            list.innerHTML = '';
+            return;
+        }
+
+        // Update student count
+        document.getElementById('studentCount').textContent = data.students.length;
+
+        if (data.students.length === 0) {
+            list.innerHTML = `
+                <div class="no-students">
+                    <span class="icon">👨‍🎓</span>
+                    <p>No students found in this class.</p>
+                    <p style="color: #666; font-size: 13px;">No students are enrolled in ${subject} (${grade}).</p>
+                </div>
+            `;
+            statsBar.style.display = 'none';
+            return;
+        }
+
+        // Update stats
+        statsBar.style.display = 'grid';
+        document.getElementById('totalCount').textContent = data.stats.total;
+        document.getElementById('lowCount').textContent = data.stats.low;
+        document.getElementById('mediumCount').textContent = data.stats.medium;
+        document.getElementById('highCount').textContent = data.stats.high;
+
+        // Display students
+        let html = '';
+        data.students.forEach(student => {
+            const riskClass = student.risk_level.toLowerCase();
+            const riskIcon = student.risk_level === 'High' ? '🔴' :
+                            student.risk_level === 'Medium' ? '🟡' : '🟢';
+
+            const avgScore = student.average_score || 0;
+            const scoreClass = avgScore >= 70 ? 'high' :
+                              avgScore >= 50 ? 'medium' : 'low';
+
+            const borderColor = student.risk_level === 'High' ? '#e74c3c' :
+                               student.risk_level === 'Medium' ? '#f39c12' : '#2ecc71';
+
+            html += `
+                <div class="student-row" style="border-left-color: ${borderColor};">
+                    <div class="info">
+                        <div class="name">${student.full_name}</div>
+                        <div class="email">📧 ${student.email}</div>
+                    </div>
+                    <div class="score ${scoreClass}">${avgScore}%</div>
+                    <div>
+                        <span class="risk-badge ${riskClass}">${riskIcon} ${student.risk_level}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        list.innerHTML = html;
+
+    } catch (error) {
+        console.error("Error:", error);
+        messageBox.className = 'message-box error';
+        messageBox.textContent = '❌ Error loading class risk data';
+        messageBox.style.display = 'block';
+        list.innerHTML = '';
+    }
+}
+
+// ============================================
+// ===== GO BACK TO DASHBOARD =====
+// ============================================
+function goBackToDashboard() {
+    localStorage.setItem('returningFromPage', 'true');
+    window.location.href = 'teacher.html';
+}
+</script>
+
+</body>
+</html>
