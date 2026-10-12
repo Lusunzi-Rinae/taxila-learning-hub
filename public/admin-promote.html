@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>End of Year Promotion</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <style>
+        .promotion-card {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            color: #06d3f7;
+            font-size: 20px;
+            margin: 0 0 10px 0;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #aaa;
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .year-badge {
+            display: inline-block;
+            background: rgba(6, 211, 247, 0.15);
+            color: #06d3f7;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            margin: 0 4px;
+        }
+
+        /* ---- Grade summary ---- */
+        .grade-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .grade-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border-left: 4px solid #06d3f7;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .grade-row:hover {
+            background: rgba(6, 211, 247, 0.1);
+            transform: translateX(4px);
+        }
+
+        .grade-row .grade-name {
+            color: white;
+            font-weight: bold;
+            font-size: 17px;
+        }
+
+        .grade-row .grade-count {
+            color: #aaa;
+            font-size: 14px;
+            margin-left: 12px;
+        }
+
+        .grade-row .review-link {
+            color: #06d3f7;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* ---- Learner list ---- */
+        .learner-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 20px 0;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .learner-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .learner-list::-webkit-scrollbar-thumb {
+            background: #06d3f7;
+            border-radius: 10px;
+        }
+
+        .learner-row {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            gap: 14px;
+        }
+
+        .learner-row.repeating {
+            background: rgba(243, 156, 18, 0.1);
+            border-left: 4px solid #f39c12;
+        }
+
+        .learner-row input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: #e74c3c;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .learner-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .learner-info .learner-name {
+            color: white;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .learner-info .learner-email {
+            color: #888;
+            font-size: 12px;
+        }
+
+        .learner-status {
+            font-size: 13px;
+            font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 14px;
+            flex-shrink: 0;
+        }
+
+        .learner-status.promote {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+        }
+
+        .learner-status.repeat {
+            background: rgba(243, 156, 18, 0.2);
+            color: #f39c12;
+        }
+
+        /* ---- Buttons ---- */
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 22px;
+            border: none;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .btn-primary {
+            background: #2ecc71;
+            color: white;
+        }
+        .btn-primary:hover { background: #27ae60; }
+
+        .btn-secondary {
+            background: rgba(7, 121, 227, 0.1);
+            color: #ccc;
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-danger:hover { background: #c0392b; }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ---- Messages ---- */
+        .message-box {
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            display: none;
+            font-size: 14px;
+        }
+        .message-box.success {
+            display: block;
+            background: rgba(46, 204, 113, 0.15);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+        }
+        .message-box.error {
+            display: block;
+            background: rgba(231, 76, 60, 0.15);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+        .message-box.info {
+            display: block;
+            background: rgba(6, 211, 247, 0.15);
+            border: 1px solid #06d3f7;
+            color: #06d3f7;
+        }
+
+        .hidden { display: none !important; }
+
+        /* ---- Batch list ---- */
+        .batch-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .batch-info {
+            flex: 1;
+            min-width: 200px;
+        }
+        .batch-id {
+            color: #06d3f7;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        .batch-meta {
+            color: #888;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+        .empty-state .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .warning-note {
+            background: rgba(243, 156, 18, 0.1);
+            border-left: 4px solid #f39c12;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: #f39c12;
+            font-size: 13px;
+            margin: 16px 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+        }
+    </style>
+</head>
+
+<body class="admin-bg">
+
+<h1 class="main-title">🎓 End of Year Promotion</h1>
+
+<div class="card promotion-card">
+    <div id="messageBox" class="message-box"></div>
+
+    <!-- ============ VIEW 1: SUMMARY ============ -->
+    <div id="viewSummary">
+        <div class="section-title">Promotion Summary</div>
+        <div class="subtitle">
+            Academic year
+            <span class="year-badge" id="currentYearBadge">2026</span>
+            →
+            <span class="year-badge" id="nextYearBadge">2027</span>
+        </div>
+
+        <div id="lastBatchInfo" class="hidden"></div>
+
+        <div id="gradeListContainer">
+            <div class="loading">📊 Loading grades...</div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="goBackToAdmin()">← Back to Dashboard</button>
+            <button class="btn btn-secondary" onclick="showBatches()">📜 Past Promotions</button>
+        </div>
+    </div>
+
+    <!-- ============ VIEW 2: REVIEW A GRADE ============ -->
+    <div id="viewReview" class="hidden">
+        <div class="section-title" id="reviewTitle">Grade 10 → Grade 11</div>
+        <div class="subtitle" id="reviewSubtitle">Uncheck learners who should repeat</div>
+
+        <div class="warning-note">
+            ⚠️ <strong>By default, everyone is promoted.</strong> Tick the learners who failed to make them repeat the same grade.
+        </div>
+
+        <div id="learnerListContainer">
+            <div class="loading">📋 Loading learners...</div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="showSummary()">← Back</button>
+            <button class="btn btn-primary" id="savePromotionBtn" onclick="savePromotion()">
+                ✅ Apply Promotions
+            </button>
+        </div>
+    </div>
+
+    <!-- ============ VIEW 3: BATCHES ============ -->
+    <div id="viewBatches" class="hidden">
+        <div class="section-title">Past Promotions</div>
+        <div class="subtitle">Each batch can be undone if it was a mistake</div>
+
+        <div id="batchListContainer">
+            <div class="loading">📚 Loading batches...</div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="showSummary()">← Back</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const user = JSON.parse(localStorage.getItem("loggedInUser"));
+
+    if (!user || user.role !== "admin") {
+        window.location.href = "Login.html";
+    }
+
+    let currentGradeData = null;   // { grade, next_grade, learners: [...] }
+
+    // ============================================
+    // ===== MESSAGE HELPERS =====
+    // ============================================
+    function showMessage(text, type = 'success') {
+        const box = document.getElementById('messageBox');
+        box.className = 'message-box ' + type;
+        box.textContent = text;
+        box.style.display = 'block';
+        setTimeout(() => { box.style.display = 'none'; }, 6000);
+    }
+
+    // ============================================
+    // ===== VIEW SWITCHING =====
+    // ============================================
+    function showSummary() {
+        document.getElementById('viewSummary').classList.remove('hidden');
+        document.getElementById('viewReview').classList.add('hidden');
+        document.getElementById('viewBatches').classList.add('hidden');
+        loadSummary();
+    }
+
+    function showBatches() {
+        document.getElementById('viewSummary').classList.add('hidden');
+        document.getElementById('viewReview').classList.add('hidden');
+        document.getElementById('viewBatches').classList.remove('hidden');
+        loadBatches();
+    }
+
+    function showReview(grade) {
+        document.getElementById('viewSummary').classList.add('hidden');
+        document.getElementById('viewBatches').classList.add('hidden');
+        document.getElementById('viewReview').classList.remove('hidden');
+        loadGrade(grade);
+    }
+
+    // ============================================
+    // ===== LOAD SUMMARY =====
+    // ============================================
+    async function loadSummary() {
+        const container = document.getElementById('gradeListContainer');
+        container.innerHTML = '<div class="loading">📊 Loading grades...</div>';
+
+        try {
+            const res = await fetch('/admin/promotion-summary');
+            const data = await res.json();
+
+            if (!data.success) {
+                showMessage(data.message || 'Failed to load summary', 'error');
+                container.innerHTML = '';
+                return;
+            }
+
+            document.getElementById('currentYearBadge').textContent = data.current_year;
+            document.getElementById('nextYearBadge').textContent = data.next_year;
+
+            // Last batch info
+            if (data.last_batch) {
+                const info = document.getElementById('lastBatchInfo');
+                info.classList.remove('hidden');
+                info.innerHTML = `
+                    <div class="warning-note">
+                        ℹ️ Last promotion ran on
+                        <strong>${new Date(data.last_batch.batch_date).toLocaleString()}</strong>
+                        (${data.last_batch.learner_count} learners).
+                        <a href="#" onclick="showBatches(); return false;" style="color:#f39c12;">View batches</a>
+                    </div>
+                `;
+            } else {
+                document.getElementById('lastBatchInfo').classList.add('hidden');
+            }
+
+            // Grade list
+            if (data.grades.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">✅</span>
+                        <p>No learners awaiting a promotion decision.</p>
+                        <p style="color:#666; font-size:13px;">All learners in ${data.current_year} have already been processed.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="grade-list">';
+            data.grades.forEach(g => {
+                const nextNum = parseInt(g.grade_level.replace(/\D/g, ''), 10) + 1;
+                html += `
+                    <div class="grade-row" onclick="showReview('${g.grade_level}')">
+                        <div>
+                            <span class="grade-name">${g.grade_level} → Grade ${nextNum}</span>
+                            <span class="grade-count">${g.total_learners} learner${g.total_learners === 1 ? '' : 's'}</span>
+                        </div>
+                        <span class="review-link">Review →</span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+
+        } catch (err) {
+            console.error(err);
+            showMessage('Failed to load summary.', 'error');
+            container.innerHTML = '';
+        }
+    }
+
+    // ============================================
+    // ===== LOAD A SPECIFIC GRADE =====
+    // ============================================
+    async function loadGrade(grade) {
+        const container = document.getElementById('learnerListContainer');
+        container.innerHTML = '<div class="loading">📋 Loading learners...</div>';
+
+        try {
+            const res = await fetch('/admin/promotion-grade/' + encodeURIComponent(grade));
+            const data = await res.json();
+
+            if (!data.success) {
+                showMessage(data.message || 'Failed to load grade', 'error');
+                container.innerHTML = '';
+                return;
+            }
+
+            currentGradeData = data;
+
+            document.getElementById('reviewTitle').textContent =
+                `${data.grade} → ${data.next_grade}`;
+            document.getElementById('reviewSubtitle').textContent =
+                `Academic year ${data.current_year} → ${data.next_year}`;
+
+            if (data.learners.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">✅</span>
+                        <p>No learners in ${data.grade} awaiting a decision.</p>
+                    </div>
+                `;
+                document.getElementById('savePromotionBtn').disabled = true;
+                return;
+            }
+
+            document.getElementById('savePromotionBtn').disabled = false;
+
+            let html = '<div class="learner-list">';
+            data.learners.forEach(l => {
+                html += `
+                    <label class="learner-row" id="row_${l.email.replace(/[^a-z0-9]/gi,'_')}">
+                        <input type="checkbox"
+                               onchange="toggleRepeat('${l.email}')"
+                               id="chk_${l.email.replace(/[^a-z0-9]/gi,'_')}">
+                        <div class="learner-info">
+                            <div class="learner-name">${l.full_name}</div>
+                            <div class="learner-email">${l.email}</div>
+                        </div>
+                        <span class="learner-status promote" id="status_${l.email.replace(/[^a-z0-9]/gi,'_')}">
+                            Promote → ${data.next_grade}
+                        </span>
+                    </label>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+
+        } catch (err) {
+            console.error(err);
+            showMessage('Failed to load learners.', 'error');
+            container.innerHTML = '';
+        }
+    }
+
+    // ============================================
+    // ===== TOGGLE PROMOTE / REPEAT =====
+    // ============================================
+    function toggleRepeat(email) {
+        const key = email.replace(/[^a-z0-9]/gi, '_');
+        const checkbox = document.getElementById('chk_' + key);
+        const row = document.getElementById('row_' + key);
+        const status = document.getElementById('status_' + key);
+
+        if (checkbox.checked) {
+            row.classList.add('repeating');
+            status.className = 'learner-status repeat';
+            status.textContent = `Repeat ${currentGradeData.grade}`;
+        } else {
+            row.classList.remove('repeating');
+            status.className = 'learner-status promote';
+            status.textContent = `Promote → ${currentGradeData.next_grade}`;
+        }
+    }
+
+    // ============================================
+    // ===== SAVE PROMOTION =====
+    // ============================================
+    async function savePromotion() {
+        if (!currentGradeData) return;
+
+        const repeatEmails = [];
+        currentGradeData.learners.forEach(l => {
+            const key = l.email.replace(/[^a-z0-9]/gi, '_');
+            const checkbox = document.getElementById('chk_' + key);
+            if (checkbox && checkbox.checked) {
+                repeatEmails.push(l.email);
+            }
+        });
+
+        const promotedCount = currentGradeData.learners.length - repeatEmails.length;
+        const repeatedCount = repeatEmails.length;
+
+        const confirmMsg =
+            `You are about to:\n\n` +
+            `• Promote ${promotedCount} learner${promotedCount === 1 ? '' : 's'} from ${currentGradeData.grade} to ${currentGradeData.next_grade}\n` +
+            `• Repeat ${repeatedCount} learner${repeatedCount === 1 ? '' : 's'} in ${currentGradeData.grade}\n\n` +
+            `This will create ${currentGradeData.current_year + 1} enrollments.\n` +
+            `You can undo this later from "Past Promotions".\n\n` +
+            `Continue?`;
+
+        if (!confirm(confirmMsg)) return;
+
+        const btn = document.getElementById('savePromotionBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Applying...';
+
+        try {
+            const res = await fetch('/admin/apply-promotions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    grade: currentGradeData.grade,
+                    repeat_emails: repeatEmails
+                })
+            });
+            const data = await res.json();
+
+            if (!data.success) {
+                showMessage(data.message || 'Failed to apply promotions.', 'error');
+                btn.disabled = false;
+                btn.textContent = '✅ Apply Promotions';
+                return;
+            }
+
+            showMessage(
+                `✅ ${data.promoted} promoted, ${data.repeated} repeated. ` +
+                `Batch ID: ${data.batch_id}. You can undo from "Past Promotions".`,
+                'success'
+            );
+
+            // Return to summary after a short delay
+            setTimeout(() => showSummary(), 2000);
+
+        } catch (err) {
+            console.error(err);
+            showMessage('Failed to apply promotions.', 'error');
+            btn.disabled = false;
+            btn.textContent = '✅ Apply Promotions';
+        }
+    }
+
+    // ============================================
+    // ===== LOAD BATCHES =====
+    // ============================================
+    async function loadBatches() {
+        const container = document.getElementById('batchListContainer');
+        container.innerHTML = '<div class="loading">📚 Loading batches...</div>';
+
+        try {
+            const res = await fetch('/admin/promotion-batches');
+            const data = await res.json();
+
+            if (!data.success) {
+                showMessage(data.message || 'Failed to load batches.', 'error');
+                container.innerHTML = '';
+                return;
+            }
+
+            if (data.batches.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">📜</span>
+                        <p>No promotion batches yet.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            data.batches.forEach(b => {
+                html += `
+                    <div class="batch-row">
+                        <div class="batch-info">
+                            <div class="batch-id">${b.promotion_batch_id}</div>
+                            <div class="batch-meta">
+                                📅 ${new Date(b.batch_date).toLocaleString()}
+                                · 👨‍🎓 ${b.learners_affected} learners
+                                · 👤 ${b.performed_by || 'unknown'}
+                            </div>
+                        </div>
+                        <button class="btn btn-danger" style="flex:0; min-width:120px;"
+                                onclick="undoBatch('${b.promotion_batch_id}')">
+                            ↩ Undo
+                        </button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+        } catch (err) {
+            console.error(err);
+            showMessage('Failed to load batches.', 'error');
+            container.innerHTML = '';
+        }
+    }
+
+    // ============================================
+    // ===== UNDO A BATCH =====
+    // ============================================
+    async function undoBatch(batchId) {
+        if (!confirm(
+            `Undo batch ${batchId}?\n\n` +
+            `This will:\n` +
+            `• Delete all next-year enrollments created by this batch\n` +
+            `• Reset affected learners to their pre-promotion grade\n\n` +
+            `This cannot be undone. Continue?`
+        )) return;
+
+        try {
+            const res = await fetch('/admin/undo-batch/' + encodeURIComponent(batchId), {
+                method: 'POST'
+            });
+            const data = await res.json();
+
+            if (!data.success) {
+                showMessage(data.message || 'Failed to undo batch.', 'error');
+                return;
+            }
+
+            showMessage(
+                `✅ Undid batch ${batchId}. ${data.learners_restored} learner${data.learners_restored === 1 ? '' : 's'} restored.`,
+                'success'
+            );
+
+            loadBatches();
+
+        } catch (err) {
+            console.error(err);
+            showMessage('Failed to undo batch.', 'error');
+        }
+    }
+
+    // ============================================
+    // ===== NAVIGATION =====
+    // ============================================
+    function goBackToAdmin() {
+        window.location.href = 'admin.html';
+    }
+
+    // ============================================
+    // ===== INIT =====
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSummary();
+    });
+</script>
+
+</body>
+</html>
