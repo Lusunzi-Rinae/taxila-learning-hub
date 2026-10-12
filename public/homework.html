@@ -3,359 +3,52 @@
 <head>
     <title>View Homework</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .homework-item {
-            background: rgba(255,255,255,0.05);
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border-left: 4px solid #06d3f7;
-            transition: all 0.3s ease;
-        }
-        .homework-item:hover {
-            background: rgba(255,255,255,0.08);
-            transform: translateX(5px);
-        }
-        .homework-item .title {
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .homework-item .description {
-            color: #aaa;
-            margin: 5px 0 10px 0;
-        }
-        .homework-item .meta {
-            color: #666;
-            font-size: 12px;
-        }
-        .homework-item .grade-tag {
-            display: inline-block;
-            padding: 2px 12px;
-            border-radius: 12px;
-            background: rgba(243,156,18,0.2);
-            color: #f39c12;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-        .homework-item .view-link {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 6px 16px;
-            background: #06d3f7;
-            color: white;
-            border-radius: 20px;
-            text-decoration: none;
-            font-size: 13px;
-            transition: all 0.3s ease;
-        }
-        .homework-item .view-link:hover {
-            background: #04b5d9;
-            transform: scale(1.05);
-        }
-        .no-homework {
-            text-align: center;
-            padding: 40px;
-            color: #aaa;
-        }
-        .no-homework .icon {
-            font-size: 48px;
-            display: block;
-            margin-bottom: 15px;
-        }
-        .debug-box {
-            background: rgba(0,0,0,0.7);
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            border: 1px solid #333;
-            max-height: 250px;
-            overflow: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
-            display: none;
-        }
-        .debug-box.visible {
-            display: block;
-        }
-        .debug-box.error {
-            color: #ff6b6b;
-            border-color: #600;
-        }
-        .debug-box .label {
-            color: #06d3f7;
-            font-weight: bold;
-        }
-        .refresh-btn {
-            background: #06d3f7;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .refresh-btn:hover {
-            background: #04b5d9;
-            transform: scale(1.05);
-        }
-        .toggle-debug {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid #333;
-            padding: 6px 15px;
-            border-radius: 15px;
-            color: #888;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s ease;
-        }
-        .toggle-debug:hover {
-            background: rgba(255,255,255,0.15);
-            color: white;
-        }
-        .toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .toolbar .count {
-            color: #888;
-            font-size: 14px;
-        }
-        .toolbar .count strong {
-            color: white;
-        }
-        .loading-spinner {
-            text-align: center;
-            padding: 30px;
-            color: #aaa;
-        }
-        .loading-spinner .spinner {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 3px solid rgba(255,255,255,0.1);
-            border-top: 3px solid #06d3f7;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .grade-filter-info {
-            color: #f39c12;
-            font-size: 13px;
-            padding: 8px 15px;
-            background: rgba(243,156,18,0.1);
-            border-radius: 20px;
-            border: 1px solid rgba(243,156,18,0.2);
-            display: inline-block;
-            margin-bottom: 15px;
-        }
-    </style>
+    <script src="auth.js"></script>
 </head>
 
 <body class="student-bg">
 
-<h1 class="main-title">📚 My Homework</h1>
+<h1 class="main-title">Homework</h1>
 
 <div class="card">
-    <!-- Grade Filter Info -->
-    <div id="gradeInfo" class="grade-filter-info">📚 Loading grade info...</div>
-    
-    <!-- Toolbar -->
-    <div class="toolbar">
-        <span class="count">Showing <strong id="hwCount">0</strong> assignments</span>
-        <div style="display: flex; gap: 8px;">
-            <button class="toggle-debug" onclick="toggleDebug()">🐛 Toggle Debug</button>
-            <button class="refresh-btn" onclick="loadHomework()">🔄 Refresh</button>
-        </div>
-    </div>
-
-    <!-- Debug Box -->
-    <div id="debugBox" class="debug-box">
-        <span class="label">🔍 Debug Info:</span>
-        <div id="debugContent">Waiting for data...</div>
-    </div>
-
-    <!-- Homework List -->
-    <div id="homeworkList">
-        <div class="loading-spinner">
-            <div class="spinner"></div>
-            <p>Loading homework assignments...</p>
-        </div>
-    </div>
-
-    <!-- Back Button -->
-    <button onclick="window.location.href='learner.html'" style="margin-top: 20px; width: 100%; padding: 12px;">← Back to Dashboard</button>
+    <div id="filterInfo" style="color: #888; text-align: center; margin-bottom: 15px; font-size: 14px;"></div>
+    <ul id="list"></ul>
+    <button onclick="window.location.href='learner.html'">Back</button>
 </div>
 
 <script>
-// ============================================
-// ===== GET USER DATA =====
-// ============================================
+const list = document.getElementById("list");
 const user = JSON.parse(localStorage.getItem("loggedInUser"));
+const grade = user.grade_level || '';
+const stream = user.stream || '';
 
-// Redirect if not logged in
-if (!user) {
-    window.location.href = "index.html";
-}
-
-// Get learner's grade
-const learnerGrade = user.grade_level || 'All Grades';
-const isTeacher = user.role === 'teacher';
-
-// DOM elements
-const container = document.getElementById("homeworkList");
-const debugBox = document.getElementById("debugBox");
-const debugContent = document.getElementById("debugContent");
-const hwCount = document.getElementById("hwCount");
-const gradeInfo = document.getElementById("gradeInfo");
-
-let debugVisible = false;
-
-// ============================================
-// ===== TOGGLE DEBUG =====
-// ============================================
-function toggleDebug() {
-    debugVisible = !debugVisible;
-    debugBox.classList.toggle('visible', debugVisible);
-}
-
-// ============================================
-// ===== UPDATE DEBUG =====
-// ============================================
-function updateDebug(message, isError = false) {
-    debugContent.textContent = message;
-    debugBox.className = 'debug-box visible' + (isError ? ' error' : '');
-    debugBox.style.display = 'block';
-}
-
-// ============================================
-// ===== LOAD HOMEWORK =====
-// ============================================
-async function loadHomework() {
-    // Show loading state
-    container.innerHTML = `
-        <div class="loading-spinner">
-            <div class="spinner"></div>
-            <p>Loading homework assignments...</p>
-        </div>
-    `;
-
-    // Update grade info
-    const gradeDisplay = learnerGrade || 'All Grades';
-    gradeInfo.textContent = `📚 Showing homework for: ${gradeDisplay}`;
-    
-    // Build URL with grade filter
-    let url = '/homework';
-    if (learnerGrade && learnerGrade !== 'All Grades') {
-        url += `?grade=${encodeURIComponent(learnerGrade)}`;
-    }
-    
-    // Debug info
-    const debugMsg = 
-        `📤 Fetching: ${url}\n` +
-        `👤 User: ${user.full_name || 'Unknown'}\n` +
-        `📧 Email: ${user.email || 'Unknown'}\n` +
-        `📚 Grade: ${learnerGrade}\n` +
-        `🔑 Role: ${user.role || 'Unknown'}\n` +
-        `⏰ Time: ${new Date().toLocaleString()}`;
-    updateDebug(debugMsg);
-
-    try {
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        
-        // Update debug with results
-        const resultMsg = 
-            `✅ Received ${data.length} homework items\n` +
-            `📚 Grade filter: ${learnerGrade}\n` +
-            `📋 Raw data: ${JSON.stringify(data, null, 2)}`;
-        updateDebug(resultMsg);
-
-        // Update count
-        hwCount.textContent = data.length;
-
+fetch("/homework?grade=" + encodeURIComponent(grade) + "&stream=" + encodeURIComponent(stream))
+    .then(res => res.json())
+    .then(data => {
         if (data.length === 0) {
-            container.innerHTML = `
-                <div class="no-homework">
-                    <span class="icon">📚</span>
-                    <p>No homework assigned for ${gradeDisplay} yet.</p>
-                    <p style="color: #666; font-size: 14px;">${isTeacher ? 'Upload some homework to help your students!' : 'Check back later for new assignments.'}</p>
-                    ${isTeacher ? '<br><a href="upload-homework.html" style="color: #06d3f7; text-decoration: underline;">📤 Upload Homework</a>' : ''}
-                </div>
-            `;
+            list.innerHTML = "<li>No homework uploaded yet.</li>";
             return;
         }
 
-        // Render homework items
-        let html = '';
-        data.forEach((hw, index) => {
-            const date = hw.created_at ? new Date(hw.created_at).toLocaleDateString('en-GB') : 'Unknown date';
-            const gradeDisplay = hw.grade_level || 'All Grades';
-            
-            html += `
-                <div class="homework-item">
-                    <div>
-                        <span class="title">${escapeHtml(hw.title)}</span>
-                        <span class="grade-tag">📚 ${escapeHtml(gradeDisplay)}</span>
-                    </div>
-                    <div class="description">${escapeHtml(hw.description || 'No description provided.')}</div>
-                    <div class="meta">📅 ${date}</div>
-                    ${hw.file_path ? `<a href="${hw.file_path}" target="_blank" class="view-link">📄 Open Document</a>` : ''}
-                </div>
-            `;
-        });
-        container.innerHTML = html;
+        document.getElementById("filterInfo").innerHTML = `📚 Showing homework for <strong>${grade}</strong> ${stream ? '• <strong>' + stream + '</strong>' : ''}`;
 
-    } catch (err) {
-        console.error('Error loading homework:', err);
-        updateDebug(`❌ Error: ${err.message}\nStack: ${err.stack}`, true);
-        container.innerHTML = `
-            <div class="no-homework">
-                <span class="icon">❌</span>
-                <p>Error loading homework</p>
-                <p style="color: #666; font-size: 14px;">${err.message}</p>
+        data.forEach(hw => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <b>${hw.title}</b><br>
+                ${hw.description || ""}<br>
+                <a href="${hw.file_path}" target="_blank">Open Document</a>
                 <br>
-                <button onclick="loadHomework()" class="refresh-btn">🔄 Retry</button>
-            </div>
-        `;
-    }
-}
-
-// ============================================
-// ===== ESCAPE HTML =====
-// ============================================
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// ============================================
-// ===== LOAD ON PAGE LOAD =====
-// ============================================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('📚 Homework page loaded');
-    console.log('👤 User:', user);
-    console.log('📚 Grade:', learnerGrade);
-    loadHomework();
-});
+                <small style="color: #888;">
+                    📚 ${hw.grade_level || 'All Grades'} 
+                    ${hw.stream ? '• ' + hw.stream : ''}
+                    ${hw.subject && hw.subject !== 'All Subjects' ? '• 📋 ' + hw.subject : ''}
+                </small>
+                <br><br>
+            `;
+            list.appendChild(li);
+        });
+    });
 </script>
 
 </body>
