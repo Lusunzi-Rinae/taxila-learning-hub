@@ -1,391 +1,224 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Learner Dashboard</title>
     <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
     <style>
-        .dashboard-card {
-            max-width: 900px;
-            margin: 20px auto;
-        }
-        .learner-info {
+        .student-info {
             color: #aaa;
-            font-size: 14px;
-            margin-bottom: 15px;
-            padding: 12px 15px;
-            background: rgba(255,255,255,0.05);
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .student-info .name {
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .student-info .grade {
+            color: #06d3f7;
+        }
+
+        .student-info .stream {
+            color: #f39c12;
+        }
+
+        .subjects-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .subject-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 20px;
+            border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .learner-info .name {
+
+        .subject-item:hover {
+            background: rgba(6, 211, 247, 0.1);
+            transform: translateX(5px);
+            border-color: #06d3f7;
+        }
+
+        .subject-item .subject-name {
             color: white;
             font-weight: bold;
             font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .learner-info .grade-badge {
-            display: inline-block;
-            padding: 4px 16px;
-            border-radius: 20px;
-            background: rgba(6,211,247,0.2);
+
+        .subject-item .subject-name .icon {
+            font-size: 24px;
+        }
+
+        .subject-item .arrow {
             color: #06d3f7;
-            font-weight: bold;
-            font-size: 14px;
-            border: 1px solid rgba(6,211,247,0.3);
+            font-size: 20px;
         }
-        .learner-info .email {
-            color: #888;
-            font-size: 13px;
-        }
-        
-        .tab-content {
-            background: rgba(0, 0, 0, 0.35);
-            border-radius: 16px;
-            padding: 20px;
-            margin: 10px 0;
-            text-align: left;
-        }
-        .tab-content ul { 
-            list-style: none; 
-            padding: 0; 
-            margin: 0; 
-        }
-        .tab-content li {
-            background: rgba(255, 255, 255, 0.10);
-            padding: 10px 14px;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            color: white;
-        }
-        .back-btn {
-            background: transparent;
-            border: none;
-            color: #06d3f7;
-            text-decoration: underline;
-            cursor: pointer;
-            min-width: 0;
-            padding: 0;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-        .back-btn:hover {
-            color: #04b5d9;
-        }
-        
-        .status-badge {
-            padding: 3px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .status-badge.present { background: #2ecc71; color: white; }
-        .status-badge.absent { background: #e74c3c; color: white; }
-        .status-badge.late { background: #f39c12; color: white; }
-        
-        .marks-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .marks-summary .stat-card {
-            background: rgba(255,255,255,0.05);
-            padding: 15px;
-            border-radius: 12px;
+
+        .loading-subjects {
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.05);
+            padding: 30px;
+            color: #aaa;
         }
-        .marks-summary .stat-card .value {
+
+        .no-subjects {
+            text-align: center;
+            padding: 30px;
+            color: #f39c12;
+        }
+
+        .no-subjects .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .logout-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+        }
+
+        .subject-emoji {
             font-size: 28px;
-            font-weight: bold;
-            color: #06d3f7;
+            margin-right: 12px;
         }
-        .marks-summary .stat-card .label {
-            color: #888;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-        .marks-summary .stat-card .value.high { color: #2ecc71; }
-        .marks-summary .stat-card .value.medium { color: #f39c12; }
-        .marks-summary .stat-card .value.low { color: #e74c3c; }
     </style>
 </head>
 
 <body class="student-bg">
 
-<h1 class="main-title">🎓 Learner Dashboard</h1>
+    <h1 class="main-title">🎓 Learner Dashboard</h1>
 
-<div class="card dashboard-card">
-    <h2>Welcome Learner</h2>
-    
-    <!-- Learner Info with Grade -->
-    <div class="learner-info" id="learnerInfo">
-        <div>
-            <span class="name" id="learnerName"></span>
-            <span class="email" id="learnerEmail"></span>
+    <div class="card dashboard-card">
+        <h2>Welcome Learner</h2>
+
+        <!-- Student Info -->
+        <div class="student-info" id="studentInfo">
+            <span class="name" id="studentName"></span>
+            <span class="grade" id="studentGrade"></span>
+            <span class="stream" id="studentStream"></span>
         </div>
-        <div>
-            <span class="grade-badge" id="learnerGrade">📚 Loading...</span>
+
+        <!-- Subjects List -->
+        <h3 style="color: #aaa; margin-bottom: 15px;">📚 Your Subjects</h3>
+        <div id="subjectsContainer">
+            <div class="loading-subjects">📊 Loading your subjects...</div>
         </div>
+
+        <button class="logout-btn" onclick="logout()">🚪 Logout</button>
     </div>
 
-    <!-- Menu View (Carousel) -->
-    <div id="menuView">
-        <div class="carousel">
-            <button class="carousel-arrow" onclick="scrollMenu(-1)">&#8249;</button>
-            <div class="menu" id="menu">
-                <button onclick="window.location.href='homework.html'">📚 View Homework</button>
-                <button onclick="window.location.href='announcements.html'">📢 Announcements</button>
-                <button class="tab-btn" onclick="showTab('marks', this)">📊 Marks</button>
-                <button class="tab-btn" onclick="showTab('attendance', this)">📅 Attendance</button>
-                <button onclick="window.location.href='ai-tutor.html'">🤖 AI Tutor</button>
-                <button onclick="window.location.href='study-materials.html'">📚 Study Materials</button>
-            </div>
-            <button class="carousel-arrow" onclick="scrollMenu(1)">&#8250;</button>
-        </div>
-        <button class="logout" onclick="logout()">🚪 Logout</button>
-    </div>
+    <script>
+        const user = JSON.parse(localStorage.getItem("loggedInUser"));
 
-    <!-- Marks Tab Content -->
-    <div id="marks" class="tab-content" style="display:none;">
-        <button class="back-btn" onclick="showMenu()">← Back</button>
-        <h3>📊 My Marks</h3>
-        <div id="marksList"></div>
-    </div>
+        if (!user || user.role !== "Learner") {
+            window.location.href = "index.html";
+        }
 
-    <!-- Attendance Tab Content -->
-    <div id="attendance" class="tab-content" style="display:none;">
-        <button class="back-btn" onclick="showMenu()">← Back</button>
-        <h3>📅 My Attendance</h3>
-        <div id="attendanceList"></div>
-    </div>
+        // Display student info
+        document.getElementById('studentName').textContent = user.full_name || 'Student';
+        document.getElementById('studentGrade').textContent = user.grade_level ? `📚 ${user.grade_level}` : '';
+        document.getElementById('studentStream').textContent = user.stream ? `• ${user.stream} Stream` : '';
 
-</div>
+        // ============================================
+        // ===== LOAD SUBJECTS =====
+        // ============================================
+        async function loadSubjects() {
+            const container = document.getElementById('subjectsContainer');
+            container.innerHTML = '<div class="loading-subjects">📊 Loading your subjects...</div>';
 
-<script>
-const user = JSON.parse(localStorage.getItem("loggedInUser"));
+            try {
+                const response = await fetch("/student-subjects/" + encodeURIComponent(user.email));
+                const data = await response.json();
 
-if (!user || user.role !== "Learner") {
-    window.location.href = "index.html";
-}
-
-// Display learner info
-document.getElementById('learnerName').textContent = user.full_name || 'Student';
-document.getElementById('learnerEmail').textContent = `📧 ${user.email || 'No email'}`;
-document.getElementById('learnerGrade').textContent = user.grade_level ? `📚 ${user.grade_level}` : '📚 Grade not set';
-
-function logout() {
-    localStorage.removeItem("loggedInUser");
-    window.location.href = "index.html";
-}
-
-function showTab(tabId, btn) {
-    // Hide menu view
-    document.getElementById("menuView").style.display = "none";
-    
-    // Hide all tab contents
-    document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
-    
-    // Show selected tab
-    const panel = document.getElementById(tabId);
-    if (panel) panel.style.display = "block";
-
-    // Load data for specific tabs
-    if (tabId === "marks") loadMarks();
-    if (tabId === "attendance") loadAttendance();
-}
-
-function showMenu() {
-    document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
-    document.getElementById("menuView").style.display = "block";
-    renderCarousel();
-}
-
-// ===== LOAD MARKS =====
-function loadMarks() {
-    const marksList = document.getElementById("marksList");
-    marksList.innerHTML = '<p style="color: #aaa; text-align: center;">📊 Loading your marks...</p>';
-    
-    fetch("/marks/" + encodeURIComponent(user.email))
-        .then(res => res.json())
-        .then(data => {
-            if (data.length === 0) {
-                marksList.innerHTML = `
-                    <div style="text-align: center; padding: 30px; color: #aaa;">
-                        <p style="font-size: 48px;">📊</p>
-                        <p>No marks published yet.</p>
-                        <small style="color: #666;">Check back later for updates.</small>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Calculate average
-            let totalScore = 0;
-            const subjects = {};
-            data.forEach(m => {
-                totalScore += parseFloat(m.score);
-                if (!subjects[m.subject]) {
-                    subjects[m.subject] = [];
+                if (!data.success || data.subjects.length === 0) {
+                    container.innerHTML = `
+                <div class="no-subjects">
+                    <span class="icon">📚</span>
+                    <p>No subjects assigned yet.</p>
+                    <p style="color: #666; font-size: 13px;">Please contact your teacher.</p>
+                </div>
+            `;
+                    return;
                 }
-                subjects[m.subject].push(m);
-            });
-            const average = (totalScore / data.length).toFixed(1);
-            
-            let html = `
-                <div class="marks-summary">
-                    <div class="stat-card">
-                        <div class="value ${average >= 70 ? 'high' : average >= 50 ? 'medium' : 'low'}">${average}%</div>
-                        <div class="label">📊 Overall Average</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="value">${data.length}</div>
-                        <div class="label">📝 Total Marks</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="value">${Object.keys(subjects).length}</div>
-                        <div class="label">📚 Subjects</div>
-                    </div>
-                </div>
-                <ul>
-            `;
-            
-            for (const [subject, marks] of Object.entries(subjects)) {
-                const subjectAvg = (marks.reduce((sum, m) => sum + parseFloat(m.score), 0) / marks.length).toFixed(1);
-                const avgColor = subjectAvg >= 70 ? '#2ecc71' : subjectAvg >= 50 ? '#f39c12' : '#e74c3c';
-                
-                html += `
-                    <li style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <strong style="color: #06d3f7; font-size: 16px;">${subject}</strong>
-                            <span style="color: ${avgColor}; font-weight: bold;">Avg: ${subjectAvg}%</span>
-                        </div>
-                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px;">
-                `;
-                marks.forEach(m => {
-                    const scoreColor = parseFloat(m.score) >= 70 ? '#2ecc71' : parseFloat(m.score) >= 50 ? '#f39c12' : '#e74c3c';
+
+                // ✅ Updated emojis to match your database subjects
+                const subjectEmojis = {
+                    'Mathematics': '📐',
+                    'Physical Sciences': '⚛️',
+                    'Life Sciences': '🧬',
+                    'English': '📖',
+                    'Life Orientation': '📋',
+                    'Accounting': '📊',
+                    'Business Studies': '💼',
+                    'Economics': '📈',
+                    'History': '📜',
+                    'Geography': '🌍',
+                    'Natural Sciences': '🔬',
+                    'Social Sciences': '🌍'
+                };
+
+                let html = '<div class="subjects-list">';
+                data.subjects.forEach(subject => {
+                    const emoji = subjectEmojis[subject] || '📚';
                     html += `
-                        <span style="background: rgba(255,255,255,0.08); padding: 4px 12px; border-radius: 12px; font-size: 13px; color: white; border: 1px solid ${scoreColor}40;">
-                            ${m.term}: <span style="color: ${scoreColor}; font-weight: bold;">${m.score}%</span>
-                        </span>
-                    `;
-                });
-                html += `
-                        </div>
-                    </li>
-                `;
-            }
-            
-            marksList.innerHTML = html + "</ul>";
-        })
-        .catch(err => {
-            console.error("Error loading marks:", err);
-            marksList.innerHTML = `<p style="color: #e74c3c; text-align: center;">❌ Error loading marks</p>`;
-        });
-}
-
-// ===== LOAD ATTENDANCE =====
-function loadAttendance() {
-    const attendanceList = document.getElementById("attendanceList");
-    attendanceList.innerHTML = '<p style="color: #aaa; text-align: center;">📅 Loading attendance...</p>';
-    
-    fetch("/attendance/" + encodeURIComponent(user.email))
-        .then(res => res.json())
-        .then(data => {
-            if (data.length === 0) {
-                attendanceList.innerHTML = `
-                    <div style="text-align: center; padding: 30px; color: #aaa;">
-                        <p style="font-size: 48px;">📅</p>
-                        <p>No attendance records yet.</p>
-                        <small style="color: #666;">Your attendance will appear here.</small>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Calculate statistics
-            const total = data.length;
-            const present = data.filter(a => a.status.toLowerCase() === 'present').length;
-            const absent = data.filter(a => a.status.toLowerCase() === 'absent').length;
-            const late = data.filter(a => a.status.toLowerCase() === 'late').length;
-            const attendanceRate = ((present / total) * 100).toFixed(1);
-            
-            let html = `
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
-                    <div style="background: rgba(46, 204, 113, 0.2); padding: 12px; border-radius: 10px; text-align: center; border: 1px solid rgba(46, 204, 113, 0.3);">
-                        <div style="color: #2ecc71; font-size: 20px; font-weight: bold;">${present}</div>
-                        <div style="color: #aaa; font-size: 12px;">✅ Present</div>
-                    </div>
-                    <div style="background: rgba(231, 76, 60, 0.2); padding: 12px; border-radius: 10px; text-align: center; border: 1px solid rgba(231, 76, 60, 0.3);">
-                        <div style="color: #e74c3c; font-size: 20px; font-weight: bold;">${absent}</div>
-                        <div style="color: #aaa; font-size: 12px;">❌ Absent</div>
-                    </div>
-                    <div style="background: rgba(243, 156, 18, 0.2); padding: 12px; border-radius: 10px; text-align: center; border: 1px solid rgba(243, 156, 18, 0.3);">
-                        <div style="color: #f39c12; font-size: 20px; font-weight: bold;">${late}</div>
-                        <div style="color: #aaa; font-size: 12px;">⏰ Late</div>
-                    </div>
-                    <div style="background: rgba(6, 211, 247, 0.2); padding: 12px; border-radius: 10px; text-align: center; border: 1px solid rgba(6, 211, 247, 0.3);">
-                        <div style="color: #06d3f7; font-size: 20px; font-weight: bold;">${attendanceRate}%</div>
-                        <div style="color: #aaa; font-size: 12px;">📊 Rate</div>
-                    </div>
+                <div class="subject-item" onclick="selectSubject('${subject}')">
+                    <span class="subject-name">
+                        <span class="subject-emoji">${emoji}</span>
+                        ${subject}
+                    </span>
+                    <span class="arrow">➜</span>
                 </div>
-                <ul>
             `;
-            
-            // Show records (most recent first)
-            const sortedData = [...data].reverse();
-            sortedData.forEach(a => {
-                const d = new Date(a.date_recorded).toLocaleDateString('en-GB');
-                const statusClass = a.status.toLowerCase();
-                const statusIcon = statusClass === 'present' ? '✅' : statusClass === 'absent' ? '❌' : '⏰';
-                html += `
-                    <li style="display: flex; justify-content: space-between; align-items: center;">
-                        <span>📅 ${d}</span>
-                        <span class="status-badge ${statusClass}">${statusIcon} ${a.status}</span>
-                    </li>
-                `;
-            });
-            
-            attendanceList.innerHTML = html + "</ul>";
-        })
-        .catch(err => {
-            console.error("Error loading attendance:", err);
-            attendanceList.innerHTML = `<p style="color: #e74c3c; text-align: center;">❌ Error loading attendance</p>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error("Error loading subjects:", error);
+                container.innerHTML = '<p style="color: #e74c3c; text-align: center;">❌ Error loading subjects</p>';
+            }
+        }
+
+        // ============================================
+        // ===== SELECT SUBJECT =====
+        // ============================================
+        function selectSubject(subject) {
+            localStorage.setItem('currentSubject', subject);
+            window.location.href = 'subject-dashboard.html';
+        }
+
+        // ============================================
+        // ===== LOGOUT =====
+        // ============================================
+        function logout() {
+            localStorage.removeItem("loggedInUser");
+            localStorage.removeItem("currentSubject");
+            window.location.href = "index.html";
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            loadSubjects();
         });
-}
-
-// ===== CAROUSEL FUNCTIONALITY =====
-let carouselIndex = 0;
-
-function renderCarousel() {
-    const items = document.querySelectorAll("#menu button");
-    items.forEach((btn, i) => {
-        const offset = i - carouselIndex;
-        const abs = Math.abs(offset);
-        const scale = offset === 0 ? 1.15 : Math.max(0.6, 1 - abs * 0.22);
-        btn.style.transform =
-            `translate(-50%, -50%) translateX(${offset * 95}px) scale(${scale}) rotateY(${offset * -40}deg)`;
-        btn.style.zIndex = 100 - abs;
-        btn.style.opacity = abs > 2 ? "0" : `${1 - abs * 0.3}`;
-        btn.style.pointerEvents = offset === 0 ? "auto" : "none";
-    });
-}
-
-function scrollMenu(direction) {
-    const total = document.querySelectorAll("#menu button").length;
-    carouselIndex = Math.min(Math.max(carouselIndex + direction, 0), total - 1);
-    renderCarousel();
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    const total = document.querySelectorAll("#menu button").length;
-    carouselIndex = Math.floor((total - 1) / 2);
-    renderCarousel();
-});
-</script>
+    </script>
 
 </body>
+
 </html>
