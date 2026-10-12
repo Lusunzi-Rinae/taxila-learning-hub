@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TAXILA LEARNING HUB</title>
+  <script src="auth.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -28,61 +29,58 @@
     .auth-card.show-register .auth-track { transform:translateX(-50%); }
     .auth-card.show-register .tab-pill { transform:translateX(100%); background:#ff9800; }
     .slide-title { color:#fff; font-size:22px; font-weight:700; margin-bottom:18px; text-align:center; }
-    .auth-slide input, .auth-slide select { 
-      width:100%; padding:14px 16px; margin-bottom:14px; border:none; border-radius:30px; font-size:15px; outline:none; background: white; color: #333;
-    }
-    .auth-slide select { appearance: auto; cursor: pointer; }
+    .auth-slide input, .auth-slide select { width:100%; padding:14px 16px; margin-bottom:14px; border:none; border-radius:30px; font-size:15px; outline:none; background: white; color: #333; }
     .auth-slide select option { background: white; color: #333; }
-    .auth-slide select option:disabled { color: #999; }
-    .auth-slide input::placeholder { color: #999; }
-    .submit-btn { width:100%; padding:14px; border:none; border-radius:30px; font-size:16px; font-weight:700; color:#fff; cursor:pointer; transition: transform 0.2s ease; }
-    .submit-btn:hover { transform: scale(1.02); }
+    .submit-btn { width:100%; padding:14px; border:none; border-radius:30px; font-size:16px; font-weight:700; color:#fff; cursor:pointer; }
     .login-btn { background:#00bcd4; }
     .register-btn { background:#ff9800; }
     .helper { text-align:center; margin-top:16px; font-size:14px; color:#cfd8dc; }
     .helper a { color:#00d4ee; cursor:pointer; text-decoration:underline; }
     .forgot { display:block; text-align:center; margin-top:12px; }
-    .forgot a { color:#cfd8dc; font-size:13px; text-decoration:underline; cursor:pointer; }
-    .forgot a:hover { color:#00d4ee; }
-    
-    /* Grade field - hidden by default */
-    .grade-field { display: none; margin-bottom: 14px; }
-    .grade-field.show { display: block; }
-    
-    .grade-field select {
-      width: 100%;
-      padding: 14px 16px;
-      border: none;
-      border-radius: 30px;
-      font-size: 15px;
-      outline: none;
-      background: white;
-      color: #333;
-      cursor: pointer;
+    .forgot a { color:#cfd8dc; font-size:13px; }
+
+    .wizard-step { display: none; }
+    .wizard-step.active { display: block; }
+    .wizard-info {
+        background: rgba(6,211,247,0.1);
+        border-left: 4px solid #06d3f7;
+        padding: 14px 16px;
+        border-radius: 10px;
+        color: #ccc;
+        font-size: 13.5px;
+        line-height: 1.6;
+        margin-bottom: 16px;
+        text-align: left;
     }
-    
-    .grade-field select option { 
-      background: white; 
-      color: #333; 
-      padding: 10px;
+    .wizard-info strong { color: white; }
+    .wizard-welcome { text-align:center; color:#2ecc71; font-size:18px; font-weight:bold; margin-bottom:12px; }
+    .wizard-error {
+        background: rgba(231,76,60,0.15);
+        border: 1px solid #e74c3c;
+        color: #e74c3c;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        margin-bottom: 14px;
+        display: none;
     }
-    
-    .grade-field select option:disabled { color: #999; }
-    
-    .grade-field label {
-      display: block;
-      color: #aaa;
-      font-size: 13px;
-      margin-bottom: 5px;
-      font-weight: 600;
+    .wizard-error.show { display: block; }
+    .wizard-actions { display: flex; gap: 10px; margin-top: 8px; }
+    .wizard-actions button {
+        flex: 1; padding: 14px; border: none; border-radius: 30px;
+        font-size: 15px; font-weight: 700; color: #fff; cursor: pointer; margin: 0;
     }
-    
-    .role-hint {
-      color: #666;
-      font-size: 11px;
-      text-align: right;
-      margin-top: -10px;
-      margin-bottom: 10px;
+    .wizard-actions .back-btn { background: rgba(255,255,255,0.15); }
+    .wizard-actions .next-btn { background: #ff9800; }
+    .wizard-actions .activate-btn { background: #2ecc71; }
+    .wizard-actions button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .step-indicator { text-align:center; color:#888; font-size:12px; margin-bottom:12px; letter-spacing:1px; }
+
+    #reg-code {
+      letter-spacing: 6px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -105,40 +103,67 @@
           <input type="email" id="login-email" placeholder="Email" />
           <input type="password" id="login-password" placeholder="Password" />
           <button class="submit-btn login-btn" onclick="login()">Login</button>
-          <span class="forgot"><a onclick="window.location.href='forgot-password.html'">Forgot Password?</a></span>
+          <span class="forgot"><a href="forgot-password.html">Forgot Password?</a></span>
           <p class="helper">New here? <a onclick="showRegister()">Create an account</a></p>
         </div>
 
-        <!-- ===== REGISTER SLIDE ===== -->
+        <!-- ===== REGISTER SLIDE (4-STEP WIZARD) ===== -->
         <div class="auth-slide">
-          <div class="slide-title">Create your account</div>
-          
-          <input type="text" id="reg-name" placeholder="Full name" />
-          <input type="email" id="reg-email" placeholder="Email" />
-          <input type="password" id="reg-password" placeholder="Password (min 6 characters)" />
-          
-          <!-- Role Selection -->
-          <select id="reg-role" onchange="toggleGradeField()">
-            <option value="Learner">👨‍🎓 Learner</option>
-            <option value="teacher">👩‍🏫 Teacher</option>
-            <option value="admin">👑 Admin</option>
-          </select>
-          
-          <!-- Grade Field - Shows only for Learners -->
-          <div id="gradeField" class="grade-field">
-            <label for="reg-grade">📚 Select your grade level</label>
-            <select id="reg-grade">
-              <option value="">-- Select Grade --</option>
-              <option value="Grade 8">Grade 8</option>
-              <option value="Grade 9">Grade 9</option>
-              <option value="Grade 10">Grade 10</option>
-              <option value="Grade 11">Grade 11</option>
-              <option value="Grade 12">Grade 12</option>
-            </select>
+          <div class="slide-title">Activate your account</div>
+
+          <div class="step-indicator" id="stepIndicator">Step 1 of 4</div>
+
+          <!-- STEP 1: Name + Email -->
+          <div class="wizard-step active" id="wizStep1">
+            <div class="wizard-error" id="wizError1"></div>
+            <input type="text" id="reg-name" placeholder="Full name (as on school records)" />
+            <input type="email" id="reg-email" placeholder="email" />
+            <button class="submit-btn register-btn" id="wizNext1" onclick="wizCheckPending()">
+              Continue →
+            </button>
+            <p class="helper">Already have an account? <a onclick="showLogin()">Login</a></p>
           </div>
-          
-          <button class="submit-btn register-btn" onclick="register()">Register</button>
-          <p class="helper">Already have an account? <a onclick="showLogin()">Login</a></p>
+
+          <!-- STEP 2: Date of Birth -->
+          <div class="wizard-step" id="wizStep2">
+            <div class="wizard-error" id="wizError2"></div>
+            <div class="wizard-info">
+              We found your record. Please confirm your <strong>date of birth</strong> to continue.
+            </div>
+            <input type="date" id="reg-dob" />
+            <div class="wizard-actions">
+              <button class="back-btn" onclick="wizBackToStep(1)">← Back</button>
+              <button class="next-btn" id="wizNext2" onclick="wizVerifyDob()">Continue →</button>
+            </div>
+          </div>
+
+          <!-- STEP 3: Verification Code -->
+          <div class="wizard-step" id="wizStep3">
+            <div class="wizard-error" id="wizError3"></div>
+            <div class="wizard-info">
+              We sent a 6-digit code to <strong id="wizCodeTarget">your email</strong>.
+              Enter it below to continue. <em>(Check spam if you don't see it.)</em>
+            </div>
+            <input type="text" id="reg-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" />
+            <div class="wizard-actions">
+              <button class="back-btn" onclick="wizBackToStep(2)">← Back</button>
+              <button class="next-btn" id="wizNext3" onclick="wizVerifyCode()">Verify →</button>
+            </div>
+          </div>
+
+          <!-- STEP 4: Password -->
+          <div class="wizard-step" id="wizStep4">
+            <div class="wizard-error" id="wizError4"></div>
+            <div class="wizard-welcome" id="wizWelcome">Welcome!</div>
+            <div class="wizard-info" id="wizPrefilled"></div>
+            <input type="password" id="reg-password" placeholder="Choose a password (min 8 characters)" />
+            <input type="password" id="reg-password-confirm" placeholder="Confirm password" />
+            <div class="wizard-actions">
+              <button class="back-btn" onclick="wizBackToStep(3)">← Back</button>
+              <button class="activate-btn" id="wizActivateBtn" onclick="wizActivate()">Activate Account</button>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -146,237 +171,283 @@
   </div>
 
   <script>
-    // ============================================
-    // ===== TAB MANAGEMENT =====
-    // ============================================
     const card = document.getElementById("authCard");
     const tabLogin = document.getElementById("tabLogin");
     const tabRegister = document.getElementById("tabRegister");
 
-    function showLogin() { 
-      card.classList.remove("show-register"); 
-      tabLogin.classList.add("active"); 
-      tabRegister.classList.remove("active"); 
+    function showLogin() {
+      card.classList.remove("show-register");
+      tabLogin.classList.add("active");
+      tabRegister.classList.remove("active");
+      if (typeof wizReset === 'function') wizReset();
+    }
+    function showRegister() {
+      card.classList.add("show-register");
+      tabRegister.classList.add("active");
+      tabLogin.classList.remove("active");
+      if (typeof wizReset === 'function') wizReset();
+    }
+  </script>
+
+  <script>
+    // ============================================
+    // ===== REGISTRATION WIZARD (4 STEPS) =====
+    // ============================================
+    let wizData = {
+      full_name: '',
+      email: '',
+      date_of_birth: '',
+      code: '',
+      prefilled: null
+    };
+
+    function wizShowStep(step) {
+      document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+      document.getElementById('wizStep' + step).classList.add('active');
+      document.getElementById('stepIndicator').textContent = `Step ${step} of 4`;
+      [1, 2, 3, 4].forEach(n => {
+        const err = document.getElementById('wizError' + n);
+        if (err) { err.classList.remove('show'); err.textContent = ''; }
+      });
     }
 
-    function showRegister() { 
-      card.classList.add("show-register"); 
-      tabRegister.classList.add("active"); 
-      tabLogin.classList.remove("active"); 
-      // Check initial role
-      toggleGradeField();
+    function wizShowError(step, message) {
+      const err = document.getElementById('wizError' + step);
+      if (err) { err.textContent = message; err.classList.add('show'); }
     }
 
-    // ============================================
-    // ===== GRADE FIELD TOGGLE =====
-    // ============================================
-    function toggleGradeField() {
-      const role = document.getElementById("reg-role").value;
-      const gradeField = document.getElementById("gradeField");
-      
-      if (role === "Learner") {
-        gradeField.classList.add("show");
-        document.getElementById("reg-grade").required = true;
-      } else {
-        gradeField.classList.remove("show");
-        document.getElementById("reg-grade").required = false;
-      }
+    function wizBackToStep(step) {
+      wizShowStep(step);
     }
 
-    // ============================================
-    // ===== VALIDATION =====
-    // ============================================
-    function isValidEmail(email) {
-      const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return pattern.test(email);
+    function wizReset() {
+      wizData = { full_name: '', email: '', date_of_birth: '', code: '', prefilled: null };
+      ['reg-name','reg-email','reg-dob','reg-code','reg-password','reg-password-confirm']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      wizShowStep(1);
     }
 
-    // ============================================
-    // ===== REGISTER =====
-    // ============================================
-    async function register() {
-      const full_name = document.getElementById("reg-name").value.trim();
-      const email = document.getElementById("reg-email").value.trim();
-      const password = document.getElementById("reg-password").value;
-      const role = document.getElementById("reg-role").value;
-      const grade_level = document.getElementById("reg-grade").value;
+    // ---- STEP 1: Name + Email ----
+    async function wizCheckPending() {
+      const full_name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
 
-      // Validate name
-      if (!full_name || full_name.length < 2) {
-        alert("Please enter your full name (at least 2 characters)");
+      if (!full_name || !email) {
+        wizShowError(1, 'Please fill in both name and email.');
         return;
       }
 
-      // Validate email
-      if (!email) {
-        alert("Please enter your email address");
-        return;
-      }
-      if (!isValidEmail(email)) {
-        alert("Please enter a valid email address (e.g., name@domain.com)");
-        return;
-      }
-
-      // Validate password
-      if (!password) {
-        alert("Please enter a password");
-        return;
-      }
-      if (password.length < 6) {
-        alert("Password must be at least 6 characters long");
-        return;
-      }
-
-      // Validate grade for learners
-      if (role === "Learner") {
-        if (!grade_level) {
-          alert("Please select your grade level");
-          return;
-        }
-      }
-
-      // Show loading state
-      const btn = document.querySelector('.register-btn');
-      const originalText = btn.textContent;
-      btn.textContent = '⏳ Registering...';
+      const btn = document.getElementById('wizNext1');
       btn.disabled = true;
+      btn.textContent = 'Checking...';
 
       try {
-        const response = await fetch("/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            full_name, 
-            email, 
-            password, 
-            role, 
-            grade_level: role === "Learner" ? grade_level : null 
-          })
+        const r = await fetch('/check-pending', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ full_name, email })
         });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          alert("✅ Registration successful! Please login.");
-          showLogin();
-          // Clear form
-          document.getElementById("reg-name").value = "";
-          document.getElementById("reg-email").value = "";
-          document.getElementById("reg-password").value = "";
-          document.getElementById("reg-role").value = "Learner";
-          document.getElementById("reg-grade").value = "";
-          toggleGradeField();
-        } else {
-          alert("❌ " + data.message);
-        }
-      } catch (error) {
-        console.error("Register error:", error);
-        alert("❌ Registration failed. Please check your connection and try again.");
-      }
-
-      btn.textContent = originalText;
-      btn.disabled = false;
-    }
-
-    // ============================================
-    // ===== LOGIN =====
-    // ============================================
-    async function login() {
-      const email = document.getElementById("login-email").value.trim();
-      const password = document.getElementById("login-password").value;
-
-      if (!email || !password) {
-        alert("Please enter both email and password");
-        return;
-      }
-
-      if (!isValidEmail(email)) {
-        alert("Please enter a valid email address");
-        return;
-      }
-
-      // Show loading state
-      const btn = document.querySelector('.login-btn');
-      const originalText = btn.textContent;
-      btn.textContent = '⏳ Logging in...';
-      btn.disabled = true;
-
-      try {
-        const response = await fetch("/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
-        });
-
-        const data = await response.json();
+        const data = await r.json();
 
         if (!data.success) {
-          alert("❌ " + data.message);
-          btn.textContent = originalText;
+          wizShowError(1, data.message);
+        } else {
+          wizData.full_name = full_name;
+          wizData.email = email;
+          wizShowStep(2);
+        }
+      } catch (err) {
+        console.error(err);
+        wizShowError(1, 'Could not reach the server. Try again.');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Continue →';
+    }
+
+    // ---- STEP 2: DOB → then SEND CODE ----
+    async function wizVerifyDob() {
+      const date_of_birth = document.getElementById('reg-dob').value;
+
+      if (!date_of_birth) {
+        wizShowError(2, 'Please enter your date of birth.');
+        return;
+      }
+
+      const btn = document.getElementById('wizNext2');
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+
+      try {
+        const r = await fetch('/verify-dob', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            full_name: wizData.full_name,
+            email: wizData.email,
+            date_of_birth
+          })
+        });
+        const data = await r.json();
+
+        if (!data.success) {
+          wizShowError(2, data.message);
+        } else {
+          wizData.date_of_birth = date_of_birth;
+
+          btn.textContent = 'Sending code...';
+          const sendRes = await fetch('/send-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              full_name: wizData.full_name,
+              email: wizData.email,
+              date_of_birth: wizData.date_of_birth
+            })
+          });
+          const sendData = await sendRes.json();
+
+          if (!sendData.success) {
+            wizShowError(2, sendData.message);
+          } else {
+            document.getElementById('wizCodeTarget').textContent = wizData.email;
+            wizShowStep(3);
+            document.getElementById('reg-code').focus();
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        wizShowError(2, 'Could not reach the server. Try again.');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Continue →';
+    }
+
+    // ---- STEP 3: Verify Code ----
+    async function wizVerifyCode() {
+      const code = document.getElementById('reg-code').value.trim();
+
+      if (!/^\d{6}$/.test(code)) {
+        wizShowError(3, 'Please enter the 6-digit code.');
+        return;
+      }
+
+      const btn = document.getElementById('wizNext3');
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+
+      try {
+        const r = await fetch('/verify-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            full_name: wizData.full_name,
+            email: wizData.email,
+            code
+          })
+        });
+        const data = await r.json();
+
+        if (!data.success) {
+          wizShowError(3, data.message);
+        } else {
+          wizData.code = code;
+
+          const p = data.prefilled;
+          let infoHtml = `<strong>${p.full_name}</strong><br>`;
+          infoHtml += `📧 ${p.email}<br>`;
+          if (p.role === 'Learner') {
+            infoHtml += `📚 ${p.grade_level || ''}`;
+            if (p.stream) infoHtml += ` • 📖 ${p.stream}`;
+          } else {
+            infoHtml += `👨‍🏫 Teacher`;
+          }
+          document.getElementById('wizPrefilled').innerHTML = infoHtml;
+          document.getElementById('wizWelcome').textContent = `Welcome, ${p.full_name}! 👋`;
+
+          wizShowStep(4);
+        }
+      } catch (err) {
+        console.error(err);
+        wizShowError(3, 'Could not reach the server. Try again.');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Verify →';
+    }
+
+    // ---- STEP 4: Activate ----
+    async function wizActivate() {
+      const password = document.getElementById('reg-password').value;
+      const confirm = document.getElementById('reg-password-confirm').value;
+
+      if (!password || !confirm) {
+        wizShowError(4, 'Please fill in both password fields.');
+        return;
+      }
+      if (password !== confirm) {
+        wizShowError(4, 'Passwords do not match.');
+        return;
+      }
+      if (password.length < 8) {
+        wizShowError(4, 'Password must be at least 8 characters.');
+        return;
+      }
+      if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+        wizShowError(4, 'Password must contain both letters and numbers.');
+        return;
+      }
+
+      const btn = document.getElementById('wizActivateBtn');
+      btn.disabled = true;
+      btn.textContent = 'Activating...';
+
+      try {
+        const r = await fetch('/activate-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            full_name: wizData.full_name,
+            email: wizData.email,
+            date_of_birth: wizData.date_of_birth,
+            password,
+            code: wizData.code
+          })
+        });
+        const data = await r.json();
+
+        if (!data.success) {
+          wizShowError(4, data.message);
           btn.disabled = false;
+          btn.textContent = 'Activate Account';
           return;
         }
 
-        // Save user to localStorage
-        localStorage.setItem("loggedInUser", JSON.stringify(data.user));
+        document.getElementById('wizStep4').innerHTML = `
+          <div class="wizard-welcome" style="font-size:22px; margin-top:20px;">
+            ✅ Account Activated
+          </div>
+          <div class="wizard-info" style="border-left-color:#2ecc71;">
+            ${data.message}
+          </div>
+          <button class="submit-btn login-btn" onclick="showLogin()">Go to Login →</button>
+        `;
 
-        // Redirect based on role
-        const role = (data.user?.role || "").toLowerCase();
-        if (role === "learner") {
-          window.location.href = "learner.html";
-        } else if (role === "teacher") {
-          window.location.href = "teacher.html";
-        } else if (role === "admin") {
-          window.location.href = "admin.html";
-        } else {
-          alert("Unknown role: " + data.user?.role);
-          btn.textContent = originalText;
-          btn.disabled = false;
-        }
-
-      } catch (error) {
-        console.error("Login error:", error);
-        alert("❌ Login failed. Please check your connection and try again.");
-        btn.textContent = originalText;
+      } catch (err) {
+        console.error(err);
+        wizShowError(4, 'Could not reach the server. Try again.');
         btn.disabled = false;
+        btn.textContent = 'Activate Account';
       }
     }
 
-    // ============================================
-    // ===== ENTER KEY SUPPORT =====
-    // ============================================
-    document.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        // If in login tab
-        if (!card.classList.contains('show-register')) {
-          const activeElement = document.activeElement;
-          if (activeElement.id === 'login-email' || activeElement.id === 'login-password') {
-            login();
-          }
-        } else {
-          // If in register tab
-          const activeElement = document.activeElement;
-          if (activeElement.id === 'reg-name' || 
-              activeElement.id === 'reg-email' || 
-              activeElement.id === 'reg-password' ||
-              activeElement.id === 'reg-role' ||
-              activeElement.id === 'reg-grade') {
-            register();
-          }
-        }
-      }
-    });
-
-    // ============================================
-    // ===== INITIALIZE =====
-    // ============================================
-    // Show/hide grade field on page load
     document.addEventListener('DOMContentLoaded', function() {
-      // Set default role
-      document.getElementById('reg-role').value = 'Learner';
-      toggleGradeField();
+      wizShowStep(1);
     });
   </script>
+
+  <script src="script.js"></script>
 
 </body>
 </html>
