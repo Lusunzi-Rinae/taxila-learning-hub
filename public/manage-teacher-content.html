@@ -3,6 +3,7 @@
 <head>
     <title>Manage My Content</title>
     <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
     <style>
         /* Additional styles for this page */
         .section-content {
@@ -258,7 +259,7 @@
         <div id="homeworkList"></div>
     </div>
 
-    <button onclick="window.location.href='teacher.html'" style="margin-top: 20px; width: 100%; padding: 12px;">← Back to Dashboard</button>
+   <button onclick="goBackToDashboard()" style="margin-top: 20px; width: 100%; padding: 12px;">← Back to Dashboard</button>
 </div>
 
 <script>
@@ -352,7 +353,7 @@ async function loadMarks() {
                         <br>
                         <span class="email">${m.student_email}</span>
                     </div>
-                    <button class="delete-btn" onclick="deleteMark(${m.mark_id})">🗑️ Delete</button>
+                   <button class="edit-btn" onclick="openEditModal(${m.mark_id}, '${m.subject}', ${m.score}, '${m.term}')">✏️ Edit</button>
                 </div>
             `;
         });
@@ -371,25 +372,69 @@ async function loadMarks() {
         `;
     }
 }
-
 // ============================================
-// ===== DELETE MARK =====
+// ===== EDIT MARK =====
 // ============================================
-async function deleteMark(id) {
-    if (!confirm('⚠️ Are you sure you want to delete this mark?')) return;
-    
-    try {
-        const response = await fetch('/delete-mark/' + id, {
-            method: 'DELETE'
-        });
-        const data = await response.json();
-        alert(data.message);
-        if (data.success) loadMarks();
-    } catch (error) {
-        alert('❌ Error deleting mark: ' + error.message);
-    }
+// ============================================
+// ===== OPEN EDIT MODAL =====
+// ============================================
+function openEditModal(id, subject, score, term) {
+    document.getElementById('editMarkId').value = id;
+    document.getElementById('editSubject').value = subject;
+    document.getElementById('editScore').value = score;
+    document.getElementById('editTerm').value = term;
+    document.getElementById('editModal').style.display = 'flex';
 }
 
+// ============================================
+// ===== CLOSE EDIT MODAL =====
+// ============================================
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+// ============================================
+// ===== SAVE EDITED MARK =====
+// ============================================
+async function saveEditMark() {
+    const id = document.getElementById('editMarkId').value;
+    const subject = document.getElementById('editSubject').value;
+    const score = document.getElementById('editScore').value;
+    const term = document.getElementById('editTerm').value;
+    
+    if (!subject) {
+        alert('❌ Please select a subject');
+        return;
+    }
+    
+    if (!score || score < 0 || score > 100) {
+        alert('❌ Please enter a valid score between 0 and 100');
+        return;
+    }
+    
+    if (!term) {
+        alert('❌ Please select a term');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/update-mark/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject, score: parseFloat(score), term })
+        });
+        
+        const data = await response.json();
+        alert(data.message);
+        
+        if (data.success) {
+            closeEditModal();
+            loadMarks();
+        }
+    } catch (error) {
+        alert('❌ Error updating mark: ' + error.message);
+    }
+}
 // ============================================
 // ===== LOAD ANNOUNCEMENTS =====
 // ============================================
@@ -573,7 +618,57 @@ document.addEventListener('DOMContentLoaded', function() {
     // Start with marks tab
     showSection('marks');
 });
-</script>
 
+// ============================================
+// ===== GO BACK TO DASHBOARD =====
+// ===== This function saves a flag so teacher.html knows to auto-select the class =====
+// ============================================
+function goBackToDashboard() {
+    // Set a flag so teacher.html knows the teacher is coming back from another page
+    localStorage.setItem('returningFromPage', 'true');
+    
+    // Go to the teacher dashboard
+    window.location.href = 'teacher.html';
+}
+
+</script>
+<!-- Edit Mark Modal -->
+<div id="editModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: #1a1a2e; padding: 30px; border-radius: 20px; max-width: 500px; width: 90%;">
+        <h3 style="color: white; margin-top: 0; text-align: center;">✏️ Edit Mark</h3>
+        
+        <input id="editMarkId" type="hidden">
+        
+        <label style="color: #aaa; display: block; margin-top: 15px;">Subject</label>
+        <select id="editSubject" style="width: 100%; padding: 12px; border-radius: 20px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+            <option value="Mathematics">📐 Mathematics</option>
+            <option value="English">📖 English</option>
+            <option value="Science">🔬 Science</option>
+            <option value="History">📜 History</option>
+            <option value="Geography">🌍 Geography</option>
+            <option value="Art">🎨 Art</option>
+            <option value="Music">🎵 Music</option>
+            <option value="Physical Education">🏃 Physical Education</option>
+            <option value="Computer Science">💻 Computer Science</option>
+            <option value="Other">📚 Other</option>
+        </select>
+        
+        <label style="color: #aaa; display: block; margin-top: 15px;">Score (0-100)</label>
+        <input id="editScore" type="number" placeholder="Enter score" min="0" max="100" style="width: 100%; padding: 12px; border-radius: 20px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+        
+        <label style="color: #aaa; display: block; margin-top: 15px;">Term</label>
+        <select id="editTerm" style="width: 100%; padding: 12px; border-radius: 20px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+            <option value="Term 1">📘 Term 1</option>
+            <option value="Term 2">📗 Term 2</option>
+            <option value="Term 3">📕 Term 3</option>
+            <option value="Final Exam">📝 Final Exam</option>
+        </select>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="closeEditModal()" style="flex: 1; background: #e74c3c; padding: 12px; border-radius: 25px; border: none; color: white; font-size: 16px; cursor: pointer;">Cancel</button>
+            <button onclick="saveEditMark()" style="flex: 1; background: #2ecc71; padding: 12px; border-radius: 25px; border: none; color: white; font-size: 16px; cursor: pointer;">💾 Save Changes</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
