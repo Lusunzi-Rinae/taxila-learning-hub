@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My AI Knowledge Base</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <style>
+        .kb-wrap {
+            width: 95%;
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 22px;
+            box-sizing: border-box;
+        }
+
+        .kb-panel {
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 20px;
+            padding: 35px 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 640px) {
+            .kb-panel {
+                padding: 22px 18px;
+            }
+        }
+
+        .kb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .kb-header h2 {
+            color: #06d3f7;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: none;
+            color: #06d3f7;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        .section-title {
+            color: #06d3f7;
+            font-size: 18px;
+            margin: 25px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .section-title:first-child {
+            margin-top: 0;
+        }
+
+        /* ---- Form ---- */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-field label {
+            color: #aaa;
+            font-size: 13px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .form-field textarea {
+            border-radius: 14px;
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .form-field input::placeholder,
+        .form-field textarea::placeholder {
+            color: #666;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            border-color: #06d3f7;
+        }
+
+        .form-field select option {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        /* ---- Upload zone ---- */
+        .upload-zone {
+            display: block;
+            width: 100%;
+            min-height: 140px;
+            padding: 25px 20px;
+            border: 3px dashed rgba(6, 211, 247, 0.5);
+            border-radius: 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: rgba(6, 211, 247, 0.04);
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .upload-zone:hover {
+            border-color: #06d3f7;
+            background: rgba(6, 211, 247, 0.1);
+        }
+
+        .upload-zone.has-file {
+            border-color: #2ecc71;
+            border-style: solid;
+            background: rgba(46, 204, 113, 0.1);
+        }
+
+        .upload-zone .big-icon {
+            font-size: 44px;
+            display: block;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+
+        .upload-zone .zone-title {
+            color: white;
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 15px;
+        }
+
+        .upload-zone .zone-hint {
+            color: #888;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .upload-zone input[type="file"] {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            border: 0 !important;
+            opacity: 0 !important;
+        }
+
+        .upload-zone .file-name-display {
+            color: #2ecc71;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 13px;
+            word-break: break-word;
+            display: none;
+        }
+
+        /* ---- Buttons ---- */
+        .submit-btn {
+            padding: 16px 45px;
+            border-radius: 30px;
+            border: none;
+            background: #2ecc71;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 0;
+            margin: 0;
+        }
+
+        .submit-btn:hover {
+            background: #27ae60;
+            transform: scale(1.02);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ---- Message box ---- */
+        .message-box {
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .message-box.success {
+            display: block;
+            background: rgba(46, 204, 113, 0.15);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+        }
+
+        .message-box.error {
+            display: block;
+            background: rgba(231, 76, 60, 0.15);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+
+        .message-box.info {
+            display: block;
+            background: rgba(6, 211, 247, 0.15);
+            border: 1px solid #06d3f7;
+            color: #06d3f7;
+        }
+
+        /* ---- Doc list ---- */
+        .doc-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 12px;
+            border-left: 4px solid #888;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .doc-item.indexed {
+            border-left-color: #2ecc71;
+        }
+
+        .doc-item.failed {
+            border-left-color: #e74c3c;
+        }
+
+        .doc-item.pending {
+            border-left-color: #f39c12;
+        }
+
+        .doc-info {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .doc-info .doc-title {
+            color: white;
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .doc-info .doc-meta {
+            color: #aaa;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .doc-info .doc-meta span {
+            display: inline-block;
+            margin-right: 12px;
+        }
+
+        .doc-info .doc-error {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 6px;
+            font-style: italic;
+        }
+
+        .status-badge {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-badge.indexed {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .status-badge.failed {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .status-badge.pending {
+            background: #f39c12;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            border: none;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            min-width: 0;
+            margin: 0;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+
+        .empty-state .icon {
+            font-size: 52px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #06d3f7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="teacher-bg">
+
+    <div class="kb-wrap">
+        <div class="kb-panel">
+
+            <div class="kb-header">
+                <h2>📖 My AI Knowledge Base</h2>
+                <button class="back-btn" onclick="goBack()">← Back to Dashboard</button>
+            </div>
+
+            <p style="color:#aaa; font-size:14px; margin-bottom: 20px;">
+                Upload textbooks, CAPS documents, study guides, or any reference material you want the AI Tutor to use
+                when helping learners.
+                <strong style="color:#06d3f7;">Learners will never see these files directly</strong> — only the AI uses
+                them to answer questions.
+            </p>
+
+            <div id="messageBox" class="message-box"></div>
+
+            <!-- ===== Upload form ===== -->
+            <h3 class="section-title">📤 Upload a New Document</h3>
+
+            <div class="form-grid">
+                <div class="form-field full">
+                    <label>Title *</label>
+                    <input id="kbTitle" type="text" placeholder="e.g. Grade 12 Physics Textbook">
+                </div>
+
+                <div class="form-field full">
+                    <label>Description (optional)</label>
+                    <textarea id="kbDescription"
+                        placeholder="e.g. Reference for the electricity unit — pages 142-198 most relevant"></textarea>
+                </div>
+
+
+                <div class="form-field full">
+                    <label>Document Type</label>
+                    <select id="kbDocType">
+                        <option value="textbook">📖 Textbook</option>
+                        <option value="caps">📋 CAPS Document</option>
+                        <option value="study_guide">📘 Study Guide</option>
+                        <option value="reference">📚 Reference</option>
+                        <option value="other">📄 Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <label class="upload-zone" id="kbUploadZone" for="kbFile">
+                <span class="big-icon">📄</span>
+                <div class="zone-title">Click to choose a file</div>
+                <div class="zone-hint">PDF, DOCX, PPTX, XLSX, TXT (max 15 MB)</div>
+                <input type="file" id="kbFile" accept="application/pdf,.docx,.pptx,.xlsx,.txt,.md,.csv"
+                    onchange="onFileSelected(event)">
+                <div class="file-name-display" id="kbFileName"></div>
+            </label>
+
+            <div style="text-align:center; margin-top: 20px;">
+                <button class="submit-btn" id="kbSubmit" onclick="uploadDoc()">
+                    🚀 Upload & Index for AI
+                </button>
+            </div>
+
+            <!-- ===== Existing docs ===== -->
+            <h3 class="section-title">📚 My Uploaded Documents</h3>
+            <div id="docList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading your uploads...</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ============ AUTH ============
+        const user = JSON.parse(localStorage.getItem("loggedInUser"));
+
+        if (!user || user.role !== "teacher") {
+            window.location.href = "index.html";
+        }
+
+        // ============ STATE ============
+        let selectedFile = null;
+
+        // ============ UTILS ============
+        function showMessage(text, type = 'info') {
+            const box = document.getElementById('messageBox');
+            box.textContent = text;
+            box.className = 'message-box ' + type;
+            box.style.display = 'block';
+            setTimeout(() => { box.style.display = 'none'; }, 8000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text == null ? "" : String(text);
+            return div.innerHTML;
+        }
+
+        // ============ FILE SELECT ============
+        function onFileSelected(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 15 * 1024 * 1024) {
+                alert("File too large — please keep it under 15 MB.");
+                event.target.value = "";
+                return;
+            }
+
+            selectedFile = file;
+            document.getElementById("kbFileName").textContent = "✅ " + file.name;
+            document.getElementById("kbFileName").style.display = "block";
+            document.getElementById("kbUploadZone").classList.add("has-file");
+            document.querySelector("#kbUploadZone .zone-title").textContent = "File selected — click to change";
+        }
+
+        // ============ UPLOAD ============
+        async function uploadDoc() {
+            const title = document.getElementById("kbTitle").value.trim();
+
+            if (!title) {
+                showMessage("Please enter a title.", "error");
+                return;
+            }
+            if (!selectedFile) {
+                showMessage("Please choose a file.", "error");
+                return;
+            }
+
+            const btn = document.getElementById("kbSubmit");
+            btn.disabled = true;
+            btn.textContent = "⏳ Indexing for AI (this may take a minute)...";
+
+            showMessage("Uploading and indexing your document. This can take a while for large files...", "info");
+
+            try {
+                // Read subject + grade from the teacher's selected class (set on the dashboard)
+                const teacherClass = JSON.parse(localStorage.getItem('teacherClass') || '{}');
+                const subject = teacherClass.subject || '';
+                const grade_level = teacherClass.grade || '';
+
+                const formData = new FormData();
+                formData.append("file", selectedFile);
+                formData.append("teacher_email", user.email);
+                formData.append("title", title);
+                formData.append("description", document.getElementById("kbDescription").value.trim());
+                formData.append("subject", subject);
+                formData.append("grade_level", grade_level);
+                formData.append("doc_type", document.getElementById("kbDocType").value);
+                const r = await fetch("/upload-knowledge-base", {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await r.json();
+
+                if (data.success) {
+                    if (data.warning) {
+                        showMessage("⚠️ " + data.message, "error");
+                    } else {
+                        showMessage(`✅ "${title}" uploaded and indexed (${data.chunks} chunks).`, "success");
+                    }
+                    // Reset form
+                    document.getElementById("kbTitle").value = "";
+                    document.getElementById("kbDescription").value = "";
+                    document.getElementById("kbDocType").value = "textbook";
+                    document.getElementById("kbFile").value = "";
+                    selectedFile = null;
+                    document.getElementById("kbFileName").style.display = "none";
+                    document.getElementById("kbUploadZone").classList.remove("has-file");
+                    document.querySelector("#kbUploadZone .zone-title").textContent = "Click to choose a file";
+
+                    loadDocs();
+                } else {
+                    showMessage("❌ " + data.message, "error");
+                }
+            } catch (err) {
+                console.error(err);
+                showMessage("❌ Could not upload. Check the server.", "error");
+            }
+
+            btn.disabled = false;
+            btn.textContent = "🚀 Upload & Index for AI";
+        }
+
+        // ============ LOAD DOCS ============
+        async function loadDocs() {
+            const list = document.getElementById("docList");
+            list.innerHTML = `
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Loading your uploads...</p>
+        </div>
+    `;
+
+            try {
+                const r = await fetch(`/knowledge-base/${encodeURIComponent(user.email)}`);
+                const data = await r.json();
+
+                if (!data.success) {
+                    list.innerHTML = `<p style="color:#e74c3c; text-align:center;">Error: ${escapeHtml(data.message)}</p>`;
+                    return;
+                }
+
+                if (data.docs.length === 0) {
+                    list.innerHTML = `
+                <div class="empty-state">
+                    <span class="icon">📭</span>
+                    <p>You haven't uploaded any documents yet.</p>
+                    <p style="font-size:13px;">Upload your first one above to give the AI more context.</p>
+                </div>
+            `;
+                    return;
+                }
+
+                const rows = data.docs.map(d => {
+                    const statusClass = (d.status || 'pending').toLowerCase();
+                    const date = new Date(d.created_at).toLocaleString();
+                    const chunkInfo = d.chunk_count ? `${d.chunk_count} chunks` : '0 chunks';
+
+                    return `
+                <div class="doc-item ${statusClass}">
+                    <div class="doc-info">
+                        <div class="doc-title">${escapeHtml(d.title)}</div>
+                        <div class="doc-meta">
+                            <span>📚 ${escapeHtml(d.subject || 'General')}</span>
+                            <span>🎓 ${escapeHtml(d.grade_level || 'All Grades')}</span>
+                            <span>📂 ${escapeHtml(d.doc_type || 'other')}</span>
+                            <span>🧩 ${chunkInfo}</span>
+                            <span>📅 ${date}</span>
+                        </div>
+                        ${d.error_message ? `<div class="doc-error">⚠️ ${escapeHtml(d.error_message)}</div>` : ''}
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <span class="status-badge ${statusClass}">${d.status}</span>
+                        <button class="delete-btn" onclick="deleteDoc(${d.kb_id}, '${escapeHtml(d.title).replace(/'/g, "\\'")}')">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+                }).join("");
+
+                list.innerHTML = rows;
+            } catch (err) {
+                console.error(err);
+                list.innerHTML = `<p style="color:#e74c3c; text-align:center;">Could not load your uploads.</p>`;
+            }
+        }
+
+        // ============ DELETE ============
+        async function deleteDoc(kbId, title) {
+            if (!confirm(`Delete "${title}"?\n\nThis will also remove it from the AI's knowledge base.`)) {
+                return;
+            }
+
+            try {
+                const r = await fetch(
+                    `/delete-knowledge-base/${kbId}?teacher_email=${encodeURIComponent(user.email)}`,
+                    { method: "DELETE" }
+                );
+                const data = await r.json();
+
+                if (data.success) {
+                    showMessage(`✅ "${title}" deleted.`, "success");
+                    loadDocs();
+                } else {
+                    showMessage("❌ " + data.message, "error");
+                }
+            } catch (err) {
+                console.error(err);
+                showMessage("❌ Could not delete.", "error");
+            }
+        }
+
+        // ============ NAV ============
+        function goBack() {
+            localStorage.setItem('returningFromPage', 'true');
+            window.location.href = "teacher.html";
+        }
+
+        //boot
+        document.addEventListener("DOMContentLoaded", () => {
+            loadDocs();
+        });
+
+    </script>
+
+</body>
+
+</html>
